@@ -20,6 +20,16 @@ public class WebserviceWorkerActor extends AbstractWorkerActor {
 
     private final Transformer transformer;
 
+    // XML 1.0
+    // #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
+    private static String xml10pattern = "[^"
+            + "\u0009\r\n"
+            + "\u0020-\uD7FF"
+            + "\uE000-\uFFFD"
+            + "\ud800\udc00-\udbff\udfff"
+            + "]";
+
+
 
     public WebserviceWorkerActor(ActorRef inJobController, Transformer transformer) {
         super(inJobController);
@@ -107,6 +117,8 @@ public class WebserviceWorkerActor extends AbstractWorkerActor {
                                 + key);
             }
             String withoutCtrlChars = replacement.replaceAll("[\\x00-\\x09\\x11\\x12\\x14-\\x1F\\x7F]", "");
+            //String withoutCtrlChars = replacement.replaceAll(xml10pattern, "");
+
             if  (withoutCtrlChars != null && withoutCtrlChars.length() > 0) {
                 final String field = "<![CDATA[" + withoutCtrlChars.replace("$", "\\$") + "]]>";
                 matcher.appendReplacement(sb, field);
@@ -118,9 +130,7 @@ public class WebserviceWorkerActor extends AbstractWorkerActor {
         matcher.appendTail(sb);
 
         // Remove the empty elements from the XML.
-        final String cleaned = SOAPCreator.translate(sb.toString());
-        return cleaned;
-
+        return SOAPCreator.translate(sb.toString());
     }
 
 

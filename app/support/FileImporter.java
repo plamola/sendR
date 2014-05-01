@@ -122,6 +122,7 @@ public class FileImporter {
                         file = changeFileExtension(file, "busy_" + date);
                         numberOfLinesInFile = countLinesInFile(file.getAbsolutePath());
                         openFile(file.getAbsolutePath());
+                        lineNumber = 0;
                         return file;
                     } catch (Exception e) {
                         Logger.error("Failed to rename " + file.getAbsolutePath());

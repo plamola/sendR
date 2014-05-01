@@ -8,6 +8,7 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import play.mvc.Security;
 import support.bulkImport.ImportMangerSystem;
+import support.bulkImport.ImportMangerSystem2;
 
 /**
  * Created with IntelliJ IDEA.
@@ -26,7 +27,7 @@ public class SupervisorControl extends Controller {
     public static Result start(Long id) {
         Transformer tr = Transformer.findById(id);
         if (tr != null) {
-            ImportMangerSystem mgr = ImportMangerSystem.getInstance();
+            ImportMangerSystem2 mgr = ImportMangerSystem.getInstance();
             mgr.startImportManager(getNumberOfWorkers(),tr);
         } else {
             Logger.error("Transformer with id " + id + " does not exist.");
@@ -37,7 +38,7 @@ public class SupervisorControl extends Controller {
     public static Result pause(Long id) {
         if (checkIfTransformerExists(id)) {
             Logger.debug("Contoller: Pause/Resume ImportManager for " + id);
-            ImportMangerSystem mgr = ImportMangerSystem.getInstance();
+            ImportMangerSystem2 mgr = ImportMangerSystem.getInstance();
             mgr.pauseImportManager(id);
         } else {
             Logger.error("Transformer with id " + id + " does not exist.");
@@ -48,7 +49,7 @@ public class SupervisorControl extends Controller {
     public static Result stop(Long id) {
         if (checkIfTransformerExists(id)) {
             Logger.debug("Contoller: Stopping ImportManager for " + id);
-            ImportMangerSystem mgr = ImportMangerSystem.getInstance();
+            ImportMangerSystem2 mgr = ImportMangerSystem.getInstance();
             mgr.stopImportManager(id);
         } else {
             Logger.error("Transformer with id " + id + " does not exist.");
