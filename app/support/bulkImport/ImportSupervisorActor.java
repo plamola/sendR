@@ -20,6 +20,7 @@ public class ImportSupervisorActor extends UntypedActor {
     private static final int MAX_TIMEOUTS = 100;
 
     private final SupervisorState supervisorState = new SupervisorState();
+    private final String WORKERS = "workers";
 
 
     private static Transformer transformer;
@@ -160,7 +161,6 @@ public class ImportSupervisorActor extends UntypedActor {
     }
 
 
-
     private void sendNewPayLoad(ActorRef actor) {
         if (supervisorState.getStatus() != Status.STARTING && supervisorState.getStatus() != Status.RESUMING && supervisorState.getStatus() != Status.RUNNING) {
             // Not an active mode, must stop serving new payloads
@@ -181,10 +181,8 @@ public class ImportSupervisorActor extends UntypedActor {
                 if (supervisorState.getFailureCount() == 0 && supervisorState.getSuccesCount() == 0) {
                     supervisorState.setCurrentFileSpecs(fileImporter.getCurrentFileName(),fileImporter.getNrOfLines());
                 }
-
                 Logger.trace(self().toString() + " - Sending payload to " + actor.toString());
                 actor.tell(payload, getSelf());
-
                 return;
             }
         }
@@ -224,9 +222,9 @@ public class ImportSupervisorActor extends UntypedActor {
 
 
     private synchronized Payload getNextPayload() {
-        supervisorState.incrementPayloadCount();
         String line = fileImporter.getNextLine();
         if (line != null) {
+            supervisorState.incrementPayloadCount();
             return new Payload(transformer.name, supervisorState.getPayloadCount(), line);
         } else {
             sendMessageToInformer("All available lines queued, nothing more to do");
@@ -242,7 +240,7 @@ public class ImportSupervisorActor extends UntypedActor {
             public UntypedActor create() {
                 return new WebserviceWorkerActor(self(), transformer);
             }
-        }).withRouter(new RoundRobinRouter(supervisorState.getWorkers())), "Workers_" + transformer.name);
+        }).withRouter(new RoundRobinRouter(supervisorState.getWorkers())), WORKERS);
         sendMessageToInformer("Starting workers");
     }
 

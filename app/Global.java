@@ -6,8 +6,8 @@ import play.GlobalSettings;
 import play.libs.Akka;
 import play.libs.Yaml;
 import scala.concurrent.duration.Duration;
+import support.bulkImport.ImportMangerSystemSingleton;
 import support.bulkImport.ImportMangerSystem;
-import support.bulkImport.ImportMangerSystem2;
 
 import java.util.List;
 import java.util.Map;
@@ -24,7 +24,7 @@ public class Global extends GlobalSettings {
                 new Runnable() {
                     @Override
                     public void run() {
-                        ImportMangerSystem2 mgr = ImportMangerSystem.getInstance();
+                        ImportMangerSystem mgr = ImportMangerSystemSingleton.getInstance();
                         mgr.reportOnAllSuperVisors();
                     }
                 },

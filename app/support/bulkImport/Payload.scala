@@ -7,14 +7,10 @@ package support.bulkImport
  * Time: 11:25 AM
  * To change this template use File | Settings | File Templates.
  */
-class Payload {
+class Payload(transformerName: String, lineNumber: Long, line: String) {
 
-  def this(table: String, lineNumber: Long, line: String) {
-    this()
-  }
-
-  def getTable: String = {
-    table
+  def getTransformerName: String = {
+    transformerName
   }
 
   def getLine: String = {
@@ -25,7 +21,4 @@ class Payload {
     lineNumber
   }
 
-  private final val table: String = null
-  private final val line: String = null
-  private final val lineNumber: Long = 0L
 }
