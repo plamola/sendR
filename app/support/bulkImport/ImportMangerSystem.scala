@@ -3,39 +3,22 @@ package support.bulkImport
 import akka.actor._
 import models.Transformer
 import play.Logger
+import actors.TransformerSupervisorActor
 
-object ImportMangerSystemSingleton {
-  private var mySystem: ImportMangerSystem = null
+object ImportMangerSystem {
+
   private final val SYSTEMNAME: String = "sendR"
+  var system = ActorSystem.create(SYSTEMNAME)
 
-  def getInstance: ImportMangerSystem = {
-    if (mySystem == null) {
-      mySystem = new ImportMangerSystem(ActorSystem.create(SYSTEMNAME))
-    }
-    mySystem
-  }
-
-}
-
-class ImportMangerSystem(system: ActorSystem) {
 
   def startImportManager(workers: Int, transformer: Transformer) {
     val supervisor = findTransformer(transformer.id)
-    var creationNeeded : Boolean = true
     if (supervisor != null) {
-      if (supervisor.isTerminated) {
-        Logger.debug("Supervisor found terminated")
-      }
-      else {
         supervisor.tell("Lets restart", supervisor)
         supervisor.tell(new SupervisorCommand(SupervisorCommandType.START), supervisor)
-        creationNeeded = false
-      }
-    }
-    if (creationNeeded) {
-      val importManager = system.actorOf(Props(new ImportSupervisorActor(workers, transformer)), transformer.name + "-" + transformer.id)
-      addTransformer(transformer.id, importManager)
-      Logger.info("Start import of " + transformer.importPath)
+    } else {
+        addTransformer(transformer.id, system.actorOf(Props(new TransformerSupervisorActor(workers, transformer)), transformer.name + "-" + transformer.id))
+        Logger.info("Start import of " + transformer.importPath)
     }
   }
 

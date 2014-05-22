@@ -1,4 +1,4 @@
-package support.bulkImport.workers
+package actors
 
 import akka.actor.ActorRef
 import play.Logger
@@ -20,12 +20,12 @@ class DummyWorkerActor(var inJobController : ActorRef) extends AbstractWorkerAct
     try {
       val rand: Random = new Random
       sleep((rand.nextInt(200) + 1) * 100)
-      result.setStatus(WorkerResultStatus.DONE)
+      result.status=WorkerResultStatus.DONE
     }
     catch {
       case e: Exception =>
         Logger.error("Dummy processor failed with error " + e.getMessage)
-        result.setStatus(WorkerResultStatus.FAILED)
+        result.status=WorkerResultStatus.FAILED
       }
   }
 }

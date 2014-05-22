@@ -1,4 +1,4 @@
-package support.bulkImport.workers
+package actors
 
 import akka.actor.ActorRef
 import models.Transformer
@@ -12,11 +12,7 @@ import java.util.regex.Pattern
 import scala.concurrent.ExecutionContext
 import ExecutionContext.Implicits.global
 
-object WebserviceWorkerActor {
-
-}
-
-class WebserviceWorkerActor(val inJobController: ActorRef, val transformer: Transformer) extends AbstractWorkerActor(inJobController) {
+class TransformerWorkerActor(val inJobController: ActorRef, val transformer: Transformer) extends AbstractWorkerActor(inJobController) {
 
   private def replaceValuesInTemplate(template: String, values: java.util.Map[String, String]): String = {
     val sb: StringBuffer = new StringBuffer
@@ -49,14 +45,14 @@ class WebserviceWorkerActor(val inJobController: ActorRef, val transformer: Tran
     try {
       soapBody = tranformLineToSoapMessage(payload, transformer, result)
       if (soapBody == null) {
-        result.setStatus(WorkerResultStatus.FAILED)
+        result.status=WorkerResultStatus.FAILED
         return
       }
     }
     catch {
       case e: Exception =>
         result.setResult(e.getMessage)
-        result.setStatus(WorkerResultStatus.FAILED)
+        result.status=WorkerResultStatus.FAILED
         return
     }
     result.setLineNumber(payload.getLineNumber)
@@ -69,11 +65,11 @@ class WebserviceWorkerActor(val inJobController: ActorRef, val transformer: Tran
           if (response.body.indexOf("<soap:Fault>") > 0) {
             result.setFailedInput(payload.getLine)
             result.setResult("Failed: [line: " + payload.getLineNumber + "] " + response.status + ": " + response.body)
-            result.setStatus(WorkerResultStatus.FAILED)
+            result.status=WorkerResultStatus.FAILED
           }
           else {
             result.setResult("Did: [line: " + payload.getLineNumber + "] " + payload.getLine)
-            result.setStatus(WorkerResultStatus.DONE)
+            result.status=WorkerResultStatus.DONE
           }
         )
     }
@@ -81,11 +77,11 @@ class WebserviceWorkerActor(val inJobController: ActorRef, val transformer: Tran
       case e: Exception =>
         result.setFailedInput(payload.getLine)
         result.setResult("Failed: [line: " + payload.getLineNumber + "] " + e.getMessage)
-        result.setStatus(WorkerResultStatus.TIMEOUT)
+        result.status=WorkerResultStatus.TIMEOUT
     }
   }
 
-  private[workers] def tranformLineToSoapMessage(payload: Payload, transformer: Transformer, result: WorkerResult): String = {
+  private def tranformLineToSoapMessage(payload: Payload, transformer: Transformer, result: WorkerResult): String = {
     try {
       val values: java.util.Map[String, String] = parseCsvLine(payload.getLine)
       values.put("user", transformer.webserviceUser)

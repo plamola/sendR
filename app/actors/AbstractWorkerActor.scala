@@ -1,4 +1,4 @@
-package support.bulkImport.workers
+package actors
 
 import akka.actor.ActorRef
 import akka.actor.UntypedActor
@@ -16,7 +16,7 @@ abstract class AbstractWorkerActor(mySupervisor: ActorRef) extends UntypedActor 
       case _ =>
         Logger.debug("I do not know what you want me to do with this.")
         result.setResult("I do not know what you want me to do with this.")
-        result.setStatus(WorkerResultStatus.FAILED)
+        result.status=WorkerResultStatus.FAILED
         sender.tell(result, getSelf())
     }
   }

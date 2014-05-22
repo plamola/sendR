@@ -9,9 +9,6 @@ import java.util.Comparator
 import java.util.Date
 import scala.io.Source
 
-object FileImporter {
-}
-
 class FileImporter(transformer: Transformer) {
 
   private val EXTENSION: String = transformer.importFileExtension

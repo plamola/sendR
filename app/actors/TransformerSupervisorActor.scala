@@ -1,4 +1,4 @@
-package support.bulkImport
+package actors
 
 import akka.actor._
 import akka.routing.RoundRobinRouter
@@ -7,24 +7,16 @@ import org.joda.time._
 import play.Logger
 import support.FileImporter
 import support.Informer
-import support.bulkImport.workers.WebserviceWorkerActor
 import java.io._
+import support.bulkImport._
 
-object ImportSupervisorActor {
-
-}
-
-class ImportSupervisorActor(workers: Int, transformer: Transformer) extends UntypedActor {
+class TransformerSupervisorActor(workers: Int, transformer: Transformer) extends UntypedActor {
 
   private final val MAX_TIMEOUTS: Int = 100
   private final val fileImporter: FileImporter = new FileImporter(transformer)
   private val supervisorState: SupervisorState = new SupervisorState(workers, transformer)
   private final val WORKERS: String = "workers"
   private var morePayloadAvailable: Boolean = true
-
-//  supervisorState.setWorkers(workers)
-//  supervisorState.setTransformerId(transformer.id)
-//  supervisorState.setTransformerName(transformer.name)
   startWorkers()
 
   def getStatus: SupervisorState = {
@@ -74,7 +66,7 @@ class ImportSupervisorActor(workers: Int, transformer: Transformer) extends Unty
   }
 
   private def handleReceivedWorkResult(wr: WorkerResult) {
-    wr.getStatus match {
+    wr.status match {
       case WorkerResultStatus.READY =>
         supervisorState.incrementActiveWorkers()
         if (supervisorState.getActiveWorkers == supervisorState.getWorkers) {
@@ -203,7 +195,7 @@ class ImportSupervisorActor(workers: Int, transformer: Transformer) extends Unty
   private def startWorkers() {
     val router: ActorRef = getContext().actorOf(new Props(new UntypedActorFactory {
       def create(): UntypedActor = {
-        new WebserviceWorkerActor(self, transformer)
+        new TransformerWorkerActor(self, transformer)
       }
     }).withRouter(new RoundRobinRouter(supervisorState.getWorkers)), WORKERS)
     sendMessageToInformer("Starting workers")

@@ -9,16 +9,11 @@ package support.bulkImport
  */
 class Payload(transformerName: String, lineNumber: Long, line: String) {
 
-  def getTransformerName: String = {
-    transformerName
-  }
+  def getTransformerName: String = transformerName
 
-  def getLine: String = {
-    line
-  }
+  def getLine: String = line
 
-  def getLineNumber: Long = {
-    lineNumber
-  }
+  def getLineNumber: Long = lineNumber
+
 
 }

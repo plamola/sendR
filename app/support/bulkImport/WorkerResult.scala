@@ -17,8 +17,12 @@ object WorkerResultStatus extends Enumeration {
 
 class WorkerResult(state: WorkerResultStatus.Status) {
 
-  this.start = new DateTime
-  this.end = this.start
+  private var result: String = null
+  private var failedInput: String = null
+  private var lineNumber: Long = 0L
+  private val start: DateTime = new DateTime
+  private var end: DateTime = this.start
+  var status: WorkerResultStatus.Status = state
 
 
 
@@ -39,14 +43,14 @@ class WorkerResult(state: WorkerResultStatus.Status) {
   }
 
 
-  def getStatus: WorkerResultStatus.Status = {
-    this.status
-  }
-
-  def setStatus(status: WorkerResultStatus.Status) {
-    this.status = status
-    this.end = new DateTime
-  }
+//  def getStatus: WorkerResultStatus.Status = {
+//    this.status
+//  }
+//
+//  def setStatus(status: WorkerResultStatus.Status) {
+//    this.status = status
+//    this.end = new DateTime
+//  }
 
   def getResult: String = {
     result
@@ -60,10 +64,4 @@ class WorkerResult(state: WorkerResultStatus.Status) {
     end.getMillis - start.getMillis
   }
 
-  private var result: String = null
-  private var failedInput: String = null
-  private var lineNumber: Long = 0L
-  private var start: DateTime = null
-  private var end: DateTime = null
-  private var status: WorkerResultStatus.Status = state
 }

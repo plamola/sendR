@@ -4,7 +4,6 @@ import models.Transformer
 import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
-import support.bulkImport.ImportMangerSystemSingleton
 import support.bulkImport.ImportMangerSystem
 import play.api.{Play, Logger}
 import play.api.Play.current
@@ -33,14 +32,15 @@ case class TransformerData(
                             timeStampString: String)
 
 
-object SupervisorControl extends Controller with Secured {
+object TransformerControl extends Controller with Secured {
 
   def start(id: Long) = Action {
     implicit request =>
       Transformer.findById(id) match {
         case Some(tr) =>
-          val mgr: ImportMangerSystem = ImportMangerSystemSingleton.getInstance
-          mgr.startImportManager(getNumberOfWorkers, tr)
+//          val mgr: ImportMangerSystem = ImportMangerSystemSingleton.getInstance
+//          mgr.startImportManager(getNumberOfWorkers, tr)
+          ImportMangerSystem.startImportManager(getNumberOfWorkers, tr)
         case None =>
           Logger.error("Transformer with id " + id + " does not exist.")
       }
@@ -51,8 +51,9 @@ object SupervisorControl extends Controller with Secured {
     implicit request =>
       if (checkIfTransformerExists(id)) {
         Logger.debug("Contoller: Pause/Resume ImportManager for " + id)
-        val mgr: ImportMangerSystem = ImportMangerSystemSingleton.getInstance
-        mgr.pauseImportManager(id)
+//        val mgr: ImportMangerSystem = ImportMangerSystemSingleton.getInstance
+//        mgr.pauseImportManager(id)
+        ImportMangerSystem.pauseImportManager(id)
       }
       else {
         Logger.error("Transformer with id " + id + " does not exist.")
@@ -64,8 +65,9 @@ object SupervisorControl extends Controller with Secured {
     implicit request =>
       if (checkIfTransformerExists(id)) {
         Logger.debug("Contoller: Stopping ImportManager for " + id)
-        val mgr: ImportMangerSystem = ImportMangerSystemSingleton.getInstance
-        mgr.stopImportManager(id)
+//        val mgr: ImportMangerSystem = ImportMangerSystemSingleton.getInstance
+//        mgr.stopImportManager(id)
+        ImportMangerSystem.stopImportManager(id)
       }
       else {
         Logger.error("Transformer with id " + id + " does not exist.")
