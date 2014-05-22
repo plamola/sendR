@@ -1,19 +1,18 @@
-@()
+@()(implicit flash: Flash,  session: play.api.mvc.Session)
 
 @import helper._
 
 @main(null) {
 
 
-@if(flash.containsKey("error")) {
-<div class="alert-message error">
-    <p>
-        <strong>Oops!</strong> @flash.get("error")
-    </p>
+@if(flash.get("error").getOrElse(null) != null) {
+<div class="alert alert-danger fade in">
+    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+    <strong>Error</strong> @flash.get("error")
 </div>
 }
 
-@if(!session.isEmpty()){
+@if(!session.isEmpty){
     <div>
 
     </div>
@@ -37,7 +36,7 @@
                 <div class="panel-body">
 
                     <span  class="pull-right">
-                        @if(!session.isEmpty()) {
+                        @if(!session.isEmpty) {
                         <button class="btn btn-sm btn-default"  ng-click="sendStart(transformer.id)"><i class="glyphicon glyphicon-play"></i></button>
                         <button class="btn btn-sm btn-default" ng-href="/pause/{{transformer.id}}" ng-click="sendPause(transformer.id)"><i class="glyphicon glyphicon-pause"></i></button>
                         <button class="btn btn-sm btn-default" ng-href="/stop/{{transformer.id}}"  ng-click="sendStop(transformer.id)"><i class="glyphicon glyphicon-stop"></i></button>
@@ -77,7 +76,7 @@
 </div>
 
 
-@if(session.isEmpty()) {
+@if(session.isEmpty) {
     <div class="alert alert-info">
         <button type="button" class="close" data-dismiss="alert">&times;</button>
         <strong>For internal use only</strong><br/>

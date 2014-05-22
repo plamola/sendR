@@ -2,8 +2,7 @@ package support.bulkImport.workers
 
 import akka.actor.ActorRef
 import play.Logger
-import support.bulkImport.Payload
-import support.bulkImport.WorkerResult
+import support.bulkImport.{WorkerResultStatus, Payload, WorkerResult}
 import java.util.Random
 import java.lang.Thread.sleep
 
@@ -21,12 +20,12 @@ class DummyWorkerActor(var inJobController : ActorRef) extends AbstractWorkerAct
     try {
       val rand: Random = new Random
       sleep((rand.nextInt(200) + 1) * 100)
-      result.setStatus(WorkerResult.Status.DONE)
+      result.setStatus(WorkerResultStatus.DONE)
     }
     catch {
       case e: Exception =>
         Logger.error("Dummy processor failed with error " + e.getMessage)
-        result.setStatus(WorkerResult.Status.FAILED)
+        result.setStatus(WorkerResultStatus.FAILED)
       }
   }
 }

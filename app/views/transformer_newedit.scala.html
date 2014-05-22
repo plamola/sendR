@@ -1,4 +1,4 @@
-@(title: String, id : Long, transformerForm: Form[Transformer])
+@(title: String, id : Long, transformerForm: Form[TransformerData])(implicit session: play.api.mvc.Session)
 
 @import helper._
 
@@ -12,7 +12,7 @@
     </div>
     <div class="panel-body">
 
-@if(!session.isEmpty() && id != 0) {
+@if(!session.isEmpty && id != 0) {
         <div class="pull-right">
 
             <a class="btn btn-default " href="#" data-toggle="modal" data-target="#cloneModal"><i class="glyphicon glyphicon-leaf"></i> Clone</a>&nbsp;

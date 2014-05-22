@@ -3,13 +3,12 @@ package support.bulkImport.workers
 import akka.actor.ActorRef
 import akka.actor.UntypedActor
 import play.Logger
-import support.bulkImport.Payload
-import support.bulkImport.WorkerResult
+import support.bulkImport.{WorkerResultStatus, Payload, WorkerResult}
 
 abstract class AbstractWorkerActor(mySupervisor: ActorRef) extends UntypedActor {
 
   def onReceive(message: Any) {
-    val result: WorkerResult = new WorkerResult
+    val result: WorkerResult = new WorkerResult(WorkerResultStatus.READY)
     message match {
       case payload : Payload =>
         processPayload(payload, result)
@@ -17,7 +16,7 @@ abstract class AbstractWorkerActor(mySupervisor: ActorRef) extends UntypedActor 
       case _ =>
         Logger.debug("I do not know what you want me to do with this.")
         result.setResult("I do not know what you want me to do with this.")
-        result.setStatus(WorkerResult.Status.FAILED)
+        result.setStatus(WorkerResultStatus.FAILED)
         sender.tell(result, getSelf())
     }
   }
@@ -27,12 +26,12 @@ abstract class AbstractWorkerActor(mySupervisor: ActorRef) extends UntypedActor 
   override def preStart() {
     Logger.debug(self.toString + " - Starting worker")
     if (mySupervisor != null)
-      mySupervisor.tell(new WorkerResult(WorkerResult.Status.READY), getSelf())
+      mySupervisor.tell(new WorkerResult(WorkerResultStatus.READY), getSelf())
   }
 
   override def postStop() {
     Logger.debug(self.toString + " - Terminated worker ")
-    mySupervisor.tell(new WorkerResult(WorkerResult.Status.SUICIDE), getSelf())
+    mySupervisor.tell(new WorkerResult(WorkerResultStatus.SUICIDE), getSelf())
   }
 
   //private final val mySupervisor: ActorRef = inJobController

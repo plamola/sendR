@@ -1,6 +1,7 @@
 package support.bulkImport
 
 import org.joda.time.DateTime
+import models.Transformer
 
 /**
  * Created with IntelliJ IDEA.
@@ -9,7 +10,14 @@ import org.joda.time.DateTime
  * Time: 8:59 PM
  * To change this template use File | Settings | File Templates.
  */
-class SupervisorState {
+
+
+object SupervisorStateType  extends Enumeration {
+  type Status = Value
+  val STARTING, RUNNING,PAUSING,PAUSED,RESUMING,STOPPING,STOPPED = Value
+}
+
+class SupervisorState(workers: Int, transformer: Transformer) {
   def getNrOfLines: Long = {
     nrOfLines
   }
@@ -27,16 +35,8 @@ class SupervisorState {
     transformerName
   }
 
-  def setTransformerName(transformerName: String) {
-    this.transformerName = transformerName
-  }
-
   def getTransformerId: Long = {
     transformerId
-  }
-
-  def setTransformerId(transformerId: Long) {
-    this.transformerId = transformerId
   }
 
   def getSuccesCount: Int = {
@@ -85,10 +85,6 @@ class SupervisorState {
     this.stopTime = stopTime
   }
 
-  def setWorkers(count: Int) {
-    this.workers = count
-  }
-
   def getWorkers: Int = {
     workers
   }
@@ -113,12 +109,12 @@ class SupervisorState {
     this.payloadCount += 1
   }
 
-  def getStatus: ImportSupervisorActor.Status = {
+  def getStatus: SupervisorStateType.Status = {
     status
   }
 
-  def setStatus(status: ImportSupervisorActor.Status) {
-    this.status = status
+  def setStatus(newStatus: SupervisorStateType.Status) {
+   status = newStatus
   }
 
   private var succesCount: Int = 0
@@ -126,12 +122,11 @@ class SupervisorState {
   private var timeOutcount: Int = 0
   private var startTime: DateTime = new DateTime
   private var stopTime: DateTime = new DateTime
-  private var workers: Int = 0
   private var activeWorkers: Int = 0
   private var payloadCount: Int = 0
-  private var status: ImportSupervisorActor.Status = ImportSupervisorActor.Status.STOPPED
-  private var transformerId: Long = 0L
-  private var transformerName: String = null
+  private var status: SupervisorStateType.Status = SupervisorStateType.STOPPED
+  private val transformerId: Long = transformer.id
+  private val transformerName: String = transformer.name
   private var currentFile: String = null
   private var nrOfLines: Long = 0L
 }

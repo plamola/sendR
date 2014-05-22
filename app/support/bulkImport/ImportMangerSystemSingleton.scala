@@ -28,7 +28,7 @@ class ImportMangerSystem(system: ActorSystem) {
       }
       else {
         supervisor.tell("Lets restart", supervisor)
-        supervisor.tell(new SupervisorCommand(SupervisorCommand.Status.START), supervisor)
+        supervisor.tell(new SupervisorCommand(SupervisorCommandType.START), supervisor)
         creationNeeded = false
       }
     }
@@ -50,14 +50,14 @@ class ImportMangerSystem(system: ActorSystem) {
   def pauseImportManager(id: Long) {
     val supervisor: ActorRef = findTransformer(id)
     if (supervisor != null) {
-      supervisor.tell(new SupervisorCommand(SupervisorCommand.Status.PAUSE), supervisor)
+      supervisor.tell(new SupervisorCommand(SupervisorCommandType.PAUSE), supervisor)
     }
   }
 
   def reportOnAllSuperVisors() {
     import scala.collection.JavaConversions._
     for (actor <- map.values) {
-      actor.tell(new SupervisorCommand(SupervisorCommand.Status.REPORT), actor)
+      actor.tell(new SupervisorCommand(SupervisorCommandType.REPORT), actor)
     }
   }
 

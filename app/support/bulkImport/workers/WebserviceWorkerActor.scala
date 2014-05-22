@@ -4,13 +4,13 @@ import akka.actor.ActorRef
 import models.Transformer
 import org.apache.commons.lang3.StringUtils
 import play.Logger
-import play.libs.WS
-import support.bulkImport.Payload
-import support.bulkImport.SOAPCreator
-import support.bulkImport.WorkerResult
+import play.api.libs.ws._
+import support.bulkImport.{WorkerResultStatus, Payload, SOAPCreator, WorkerResult}
 import au.com.bytecode.opencsv.CSVParser
 import java.util.regex.Matcher
 import java.util.regex.Pattern
+import scala.concurrent.ExecutionContext
+import ExecutionContext.Implicits.global
 
 object WebserviceWorkerActor {
 
@@ -49,37 +49,39 @@ class WebserviceWorkerActor(val inJobController: ActorRef, val transformer: Tran
     try {
       soapBody = tranformLineToSoapMessage(payload, transformer, result)
       if (soapBody == null) {
-        result.setStatus(WorkerResult.Status.FAILED)
+        result.setStatus(WorkerResultStatus.FAILED)
         return
       }
     }
     catch {
       case e: Exception =>
         result.setResult(e.getMessage)
-        result.setStatus(WorkerResult.Status.FAILED)
+        result.setStatus(WorkerResultStatus.FAILED)
         return
     }
     result.setLineNumber(payload.getLineNumber)
     try {
-      val requestHolder: WS.WSRequestHolder = WS.url(transformer.webserviceURL).setContentType("text/xml;charset=" + transformer.webserviceCharSet)
-      requestHolder.setTimeout(transformer.webserviceTimeout)
       Logger.trace(self.toString + " - Ready to send request to " + transformer.webserviceURL)
-      val response: WS.Response = requestHolder.post(soapBody).get
-      if (response.getBody.indexOf("<soap:Fault>") > 0) {
-        result.setFailedInput(payload.getLine)
-        result.setResult("Failed: [line: " + payload.getLineNumber + "] " + response.getStatus + ": " + response.getBody)
-        result.setStatus(WorkerResult.Status.FAILED)
-      }
-      else {
-        result.setResult("Did: [line: " + payload.getLineNumber + "] " + payload.getLine)
-        result.setStatus(WorkerResult.Status.DONE)
-      }
+      WS.url(transformer.webserviceURL)
+        .withHeaders("content-type" -> {"text/xml;charset="+ transformer.webserviceCharSet})
+        .withRequestTimeout(transformer.webserviceTimeout)
+        .post(soapBody).map( response =>
+          if (response.body.indexOf("<soap:Fault>") > 0) {
+            result.setFailedInput(payload.getLine)
+            result.setResult("Failed: [line: " + payload.getLineNumber + "] " + response.status + ": " + response.body)
+            result.setStatus(WorkerResultStatus.FAILED)
+          }
+          else {
+            result.setResult("Did: [line: " + payload.getLineNumber + "] " + payload.getLine)
+            result.setStatus(WorkerResultStatus.DONE)
+          }
+        )
     }
     catch {
       case e: Exception =>
         result.setFailedInput(payload.getLine)
         result.setResult("Failed: [line: " + payload.getLineNumber + "] " + e.getMessage)
-        result.setStatus(WorkerResult.Status.TIMEOUT)
+        result.setStatus(WorkerResultStatus.TIMEOUT)
     }
   }
 
@@ -89,9 +91,7 @@ class WebserviceWorkerActor(val inJobController: ActorRef, val transformer: Tran
       values.put("user", transformer.webserviceUser)
       values.put("password", transformer.webservicePassword)
       values.put("timestamp", transformer.timeStampString)
-      var bodyContent: String = transformer.webserviceTemplate
-      bodyContent = replaceValuesInTemplate(bodyContent, values)
-      bodyContent
+      replaceValuesInTemplate(transformer.webserviceTemplate, values)
     }
     catch {
       case e: Exception =>
