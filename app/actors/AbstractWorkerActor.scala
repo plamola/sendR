@@ -3,25 +3,23 @@ package actors
 import akka.actor.ActorRef
 import akka.actor.UntypedActor
 import play.Logger
-import support.bulkImport.{WorkerResultStatus, Payload, WorkerResult}
+import support.bulkImport.{WorkerResult, WorkerResultStatus, Payload}
 
 abstract class AbstractWorkerActor(mySupervisor: ActorRef) extends UntypedActor {
 
   def onReceive(message: Any) {
-    val result: WorkerResult = new WorkerResult(WorkerResultStatus.READY)
+
     message match {
       case payload : Payload =>
-        processPayload(payload, result)
-        mySupervisor.tell(result, getSelf())
+        mySupervisor.tell(processPayload(payload, new WorkerResult(WorkerResultStatus.READY)), getSelf())
       case _ =>
-        Logger.debug("I do not know what you want me to do with this.")
+        val result: WorkerResult = new WorkerResult(WorkerResultStatus.FAILED)
         result.setResult("I do not know what you want me to do with this.")
-        result.status=WorkerResultStatus.FAILED
         sender.tell(result, getSelf())
     }
   }
 
-  protected def processPayload(payload: Payload, result: WorkerResult)
+  protected def processPayload(payload: Payload, result: WorkerResult) : WorkerResult
 
   override def preStart() {
     Logger.debug(self.toString + " - Starting worker")
@@ -34,5 +32,4 @@ abstract class AbstractWorkerActor(mySupervisor: ActorRef) extends UntypedActor 
     mySupervisor.tell(new WorkerResult(WorkerResultStatus.SUICIDE), getSelf())
   }
 
-  //private final val mySupervisor: ActorRef = inJobController
 }

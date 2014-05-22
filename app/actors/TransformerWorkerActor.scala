@@ -40,20 +40,20 @@ class TransformerWorkerActor(val inJobController: ActorRef, val transformer: Tra
   //private var xml10pattern: String = "[^" + "\u0009\r\n" + "\u0020-\uD7FF" + "\uE000-\uFFFD" + "\ud800\udc00-\udbff\udfff" + "]"
 
 
-  override protected def processPayload(payload: Payload, result: WorkerResult) {
+  override protected def processPayload(payload: Payload, result: WorkerResult) : WorkerResult = {
     var soapBody: String = null
     try {
       soapBody = tranformLineToSoapMessage(payload, transformer, result)
       if (soapBody == null) {
         result.status=WorkerResultStatus.FAILED
-        return
+        result
       }
     }
     catch {
       case e: Exception =>
         result.setResult(e.getMessage)
         result.status=WorkerResultStatus.FAILED
-        return
+        result
     }
     result.setLineNumber(payload.getLineNumber)
     try {
@@ -66,18 +66,19 @@ class TransformerWorkerActor(val inJobController: ActorRef, val transformer: Tra
             result.setFailedInput(payload.getLine)
             result.setResult("Failed: [line: " + payload.getLineNumber + "] " + response.status + ": " + response.body)
             result.status=WorkerResultStatus.FAILED
-          }
-          else {
+          } else {
             result.setResult("Did: [line: " + payload.getLineNumber + "] " + payload.getLine)
             result.status=WorkerResultStatus.DONE
           }
         )
+      result
     }
     catch {
       case e: Exception =>
         result.setFailedInput(payload.getLine)
         result.setResult("Failed: [line: " + payload.getLineNumber + "] " + e.getMessage)
         result.status=WorkerResultStatus.TIMEOUT
+        result
     }
   }
 

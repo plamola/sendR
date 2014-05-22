@@ -14,7 +14,6 @@ class StatusReportActor extends Actor {
     case message : String =>
       Logger.debug(self.toString + " - Doing some reporting ")
       ImportMangerSystem.reportOnAllSuperVisors()
-
   }
 
 }

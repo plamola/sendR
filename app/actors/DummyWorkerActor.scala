@@ -16,16 +16,18 @@ import java.lang.Thread.sleep
 class DummyWorkerActor(var inJobController : ActorRef) extends AbstractWorkerActor(inJobController) {
 
 
-  protected def processPayload(payload: Payload, result: WorkerResult) {
+  protected def processPayload(payload: Payload, result: WorkerResult) : WorkerResult = {
     try {
       val rand: Random = new Random
       sleep((rand.nextInt(200) + 1) * 100)
       result.status=WorkerResultStatus.DONE
+      result
     }
     catch {
       case e: Exception =>
         Logger.error("Dummy processor failed with error " + e.getMessage)
         result.status=WorkerResultStatus.FAILED
+        result
       }
   }
 }
