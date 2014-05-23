@@ -4,7 +4,12 @@
 
 @main(null) {
 
-
+@if(flash.get("success").getOrElse(null) != null) {
+<div class="alert alert-success fade in">
+    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+    <strong>Success</strong> @flash.get("success")
+</div>
+}
 @if(flash.get("error").getOrElse(null) != null) {
 <div class="alert alert-danger fade in">
     <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>

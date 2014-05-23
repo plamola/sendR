@@ -34,6 +34,25 @@ case class TransformerData(
 
 object TransformerControl extends Controller with Secured {
 
+  val transformerForm = Form(
+    mapping(
+      "id" -> longNumber,
+      "name" -> nonEmptyText,
+      "category" -> text,
+      "importPath" -> text,
+      "importFileExtension" -> default(text,".csv"),
+      "importFilecontentType" -> default(text,"cp1252"),
+      "webserviceCharSet" -> default(text,"UTF-8"),
+      "webserviceURL" -> text,
+      "webserviceUser" -> text,
+      "webservicePassword" -> text,
+      "webserviceTimeout" -> default(number,10000),
+      "webserviceTemplate" -> default(text, "<soap></soap>"),
+      "timeStampString" -> default(text,"2014-01-01T00:00:00Z")
+    )(TransformerData.apply)(TransformerData.unapply)
+  )
+
+
   def start(id: Long) = Action {
     implicit request =>
       Transformer.findById(id) match {
@@ -71,20 +90,27 @@ object TransformerControl extends Controller with Secured {
 
   def edit(id: Long) = Action {
     implicit request =>
-      if (id == 0L) {
+      if (id == 0) {
+        val formData = TransformerData(0L, null, null, null, ".csv", "cp1252", "UTF-8", null, null, null, 10000,
+          "<soap></soap>", "2014-01-01T00:00:00Z")
+        //val form2 = transformerForm.fill(formData)
+
+//        Ok(views.html.transformer_newedit
+//          .render("New transformer", id, form2,session)
+//        )
         Ok(views.html.transformer_newedit
-          .render("New transformer", id, transformerForm.fill(
-              new TransformerData(0L, null, null, null, ".csv", "cp1252", "UTF-8", null, null, null, 10000,
-                "<soap></soap>", "2014-01-01T00:00:00Z")
-        ),session
-        )
+          .render("New transformer", id, transformerForm,session)
         )
       }
-      else {
-        Ok(views.html.transformer_newedit
-          .render("Edit transformer", id, transformerForm.fill(TransformerToTransformerData(Transformer.findById(id).get)),session)
-        )
-      }
+      else
+        Transformer.findById(id) match {
+          case Some(tr) => Ok(views.html.transformer_newedit
+            .render("Edit transformer", id, transformerForm.fill(TransformerToTransformerData(tr)),session)
+          )
+          case None =>
+            Redirect(routes.Application.index()).flashing("error" -> "Transformer not found")
+        }
+
   }
 
   def save(id: Long) = Action {
@@ -113,8 +139,15 @@ object TransformerControl extends Controller with Secured {
 
   def delete(id: Long) = Action {
     implicit request =>
+      try {
       Transformer.delete(id)
-      Redirect(routes.Application.index())
+      Redirect(routes.Application.index()).flashing("success" -> "Transformer deleted")
+      }
+      catch {
+        case e: Exception =>
+          Redirect(routes.Application.index()).flashing("error" -> "Transformer could not be deleted")
+      }
+
   }
 
   def cloneThisTransformer(sourceId: Long) = Action {
@@ -152,26 +185,5 @@ object TransformerControl extends Controller with Secured {
   private def TransformerToTransformerData(tr: Transformer) = new
       TransformerData(tr.id, tr.name, tr.category, tr.importPath, tr.importFileExtension, tr.importFilecontentType, tr.webserviceCharSet,
         tr.webserviceURL, tr.webserviceUser, tr.webservicePassword, tr.webserviceTimeout, tr.webserviceTemplate, tr.timeStampString)
-
-
-
-
-  val transformerForm = Form(
-    mapping(
-      "id" -> longNumber,
-      "name" -> nonEmptyText,
-      "category" -> text,
-      "importPath" -> text,
-      "importFileExtension" -> text,
-      "importFilecontentType" -> text,
-      "webserviceCharSet" -> text,
-      "webserviceURL" -> text,
-      "webserviceUser" -> text,
-      "webservicePassword" -> text,
-      "webserviceTimeout" -> number,
-      "webserviceTemplate" -> text,
-      "timeStampString" -> text
-    )(TransformerData.apply)(TransformerData.unapply)
-  )
 
 }

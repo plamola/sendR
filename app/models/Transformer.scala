@@ -153,7 +153,7 @@ object Transformer {
             name={name},
             category={category},
             import_path={importPath},
-            import_file_fxtension={importFileExtension},
+            import_file_extension={importFileExtension},
             import_filecontent_type={importFilecontentType},
             webservice_char_set={webserviceCharSet},
             webservice_url={webserviceURL},
