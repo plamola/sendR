@@ -9,11 +9,10 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
  */
 object SOAPCreator {
 
-  def translate(template : String ) : String  = {
-    val xml = XML.loadString(template)
-    val cleaned = myRule.transform(xml)
-    cleaned.toString()
-  }
+  def translate(template : String ) : String  =
+    myRule.transform(XML.loadString(template)).toString()
+
+
 
   class RemoveEmptyTagsRule extends RewriteRule {
     override def transform(n: Node) = n match {
