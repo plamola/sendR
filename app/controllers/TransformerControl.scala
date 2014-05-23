@@ -71,7 +71,7 @@ object TransformerControl extends Controller with Secured {
 
   def edit(id: Long) = Action {
     implicit request =>
-      if (id == 0) {
+      if (id == 0L) {
         Ok(views.html.transformer_newedit
           .render("New transformer", id, transformerForm.fill(
               new TransformerData(0L, null, null, null, ".csv", "cp1252", "UTF-8", null, null, null, 10000,

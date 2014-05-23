@@ -3,10 +3,13 @@ sendR
 
 sendR reads csv files and send each line as a webservice (SOAP) request
 
+(warning: currently the master contains a non-functioning version)
+
 Todo list
 ---------
 - [x] Publish on github
 - [X] Upgrade to bootstrap 3
+- [ ] Migrate to scala
 - [ ] Fix deprecation warnings
 - [ ] Clean-up Real-time monitoring
 - [ ] Add: no of processed lines p/m
