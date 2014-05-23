@@ -12,7 +12,10 @@ object Application extends Controller {
     mapping(
       "email" -> nonEmptyText,
       "password" -> nonEmptyText
-    )(LoginData.apply)(LoginData.unapply)
+    )(LoginData.apply)(LoginData.unapply) verifying("password",
+      fields => fields match { case loginData => validate(loginData.email, loginData.password).isDefined
+      }
+      )
   )
 
   /**
@@ -28,7 +31,7 @@ object Application extends Controller {
    */
   def login = Action {
     implicit request =>
-    Ok(views.html.login(loginForm))
+      Ok(views.html.login(loginForm))
   }
 
   /**
@@ -38,11 +41,13 @@ object Application extends Controller {
     implicit request =>
       loginForm.bindFromRequest.fold(
         formWithErrors => {
-          BadRequest(views.html.login(formWithErrors))
+          BadRequest(views.html.login(formWithErrors))//.flashing("error" -> "Enter a e-mail address and a password")
         },
-        login => {
-          Redirect(routes.Application.index()).withSession("email" -> login.email)
-        }
+        login =>
+          //if (User.authenticate(login.email, login.password))
+            Redirect(routes.Application.index()).withSession("email" -> login.email).flashing("success" -> "Login succesful")
+        //else
+            //BadRequest(views.html.login(loginForm)).flashing("error" -> "Incorrect email address/password combination")
       )
   }
 
@@ -54,15 +59,16 @@ object Application extends Controller {
       Redirect(routes.Application.login()).withNewSession.flashing("success" -> "You've been logged out")
   }
 
+
+  def validate(email: String, password: String)  = {
+    if (User.authenticate(email, password))
+      Some(LoginData(email, password))
+    else
+      None
+  }
 }
   case class LoginData(email: String, password: String) {
 
-    def validate: String = {
-      if (!User.authenticate(email, password)) {
-        "Invalid user or password"
-      }
-      null
-    }
 
   }
 

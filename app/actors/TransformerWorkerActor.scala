@@ -14,32 +14,6 @@ import ExecutionContext.Implicits.global
 
 class TransformerWorkerActor(val inJobController: ActorRef, val transformer: Transformer) extends AbstractWorkerActor(inJobController) {
 
-  private def replaceValuesInTemplate(template: String, values: java.util.Map[String, String]): String = {
-    val sb: StringBuffer = new StringBuffer
-    val pattern: Pattern = Pattern.compile("\\{(.*?)\\}", Pattern.DOTALL)
-    val matcher: Matcher = pattern.matcher(template)
-    while (matcher.find) {
-      val key: String = matcher.group(1)
-      val replacement: String = values.get(key)
-      if (replacement == null) {
-        throw new IllegalArgumentException("Template contains unmapped key: " + key)
-      }
-      val withoutCtrlChars: String = replacement.replaceAll("[\\x00-\\x09\\x11\\x12\\x14-\\x1F\\x7F]", "")
-      if (withoutCtrlChars != null && withoutCtrlChars.length > 0) {
-        val field: String = "<![CDATA[" + withoutCtrlChars.replace("$", "\\$") + "]]>"
-        matcher.appendReplacement(sb, field)
-      }
-      else {
-        matcher.appendReplacement(sb, "")
-      }
-    }
-    matcher.appendTail(sb)
-    SOAPCreator.translate(sb.toString)
-  }
-
-  //private var xml10pattern: String = "[^" + "\u0009\r\n" + "\u0020-\uD7FF" + "\uE000-\uFFFD" + "\ud800\udc00-\udbff\udfff" + "]"
-
-
   override protected def processPayload(payload: Payload, result: WorkerResult) : WorkerResult = {
     var soapBody: String = null
     try {
@@ -81,6 +55,34 @@ class TransformerWorkerActor(val inJobController: ActorRef, val transformer: Tra
         result
     }
   }
+
+
+  //private var xml10pattern: String = "[^" + "\u0009\r\n" + "\u0020-\uD7FF" + "\uE000-\uFFFD" + "\ud800\udc00-\udbff\udfff" + "]"
+
+
+  private def replaceValuesInTemplate(template: String, values: java.util.Map[String, String]): String = {
+    val sb: StringBuffer = new StringBuffer
+    val pattern: Pattern = Pattern.compile("\\{(.*?)\\}", Pattern.DOTALL)
+    val matcher: Matcher = pattern.matcher(template)
+    while (matcher.find) {
+      val key: String = matcher.group(1)
+      val replacement: String = values.get(key)
+      if (replacement == null) {
+        throw new IllegalArgumentException("Template contains unmapped key: " + key)
+      }
+      val withoutCtrlChars: String = replacement.replaceAll("[\\x00-\\x09\\x11\\x12\\x14-\\x1F\\x7F]", "")
+      if (withoutCtrlChars != null && withoutCtrlChars.length > 0) {
+        val field: String = "<![CDATA[" + withoutCtrlChars.replace("$", "\\$") + "]]>"
+        matcher.appendReplacement(sb, field)
+      }
+      else {
+        matcher.appendReplacement(sb, "")
+      }
+    }
+    matcher.appendTail(sb)
+    SOAPCreator.translate(sb.toString)
+  }
+
 
   private def tranformLineToSoapMessage(payload: Payload, transformer: Transformer, result: WorkerResult): String = {
     try {

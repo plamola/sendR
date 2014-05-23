@@ -193,11 +193,8 @@ class TransformerSupervisorActor(workers: Int, transformer: Transformer) extends
   }
 
   private def startWorkers() {
-    val router: ActorRef = getContext().actorOf(new Props(new UntypedActorFactory {
-      def create(): UntypedActor = {
-        new TransformerWorkerActor(self, transformer)
-      }
-    }).withRouter(new RoundRobinRouter(supervisorState.getWorkers)), WORKERS)
+    getContext().actorOf(Props(new TransformerWorkerActor(self, transformer))
+      .withRouter(new RoundRobinRouter(supervisorState.getWorkers)), WORKERS)
     sendMessageToInformer("Starting workers")
   }
 

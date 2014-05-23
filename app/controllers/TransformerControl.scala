@@ -57,7 +57,7 @@ object TransformerControl extends Controller with Secured {
     implicit request =>
       Transformer.findById(id) match {
         case Some(tr) =>
-          ImportMangerSystem.startImportManager(getNumberOfWorkers, tr)
+          ImportMangerSystem.startTransformerSupervisor(getNumberOfWorkers, tr)
         case None =>
           Logger.error("Transformer with id " + id + " does not exist.")
       }
@@ -68,7 +68,7 @@ object TransformerControl extends Controller with Secured {
     implicit request =>
       if (checkIfTransformerExists(id)) {
         Logger.debug("Contoller: Pause/Resume ImportManager for " + id)
-        ImportMangerSystem.pauseImportManager(id)
+        ImportMangerSystem.pauseTransformerSupervisor(id)
       }
       else {
         Logger.error("Transformer with id " + id + " does not exist.")
@@ -80,7 +80,7 @@ object TransformerControl extends Controller with Secured {
     implicit request =>
       if (checkIfTransformerExists(id)) {
         Logger.debug("Contoller: Stopping ImportManager for " + id)
-        ImportMangerSystem.stopImportManager(id)
+        ImportMangerSystem.stopTransformerSupervisor(id)
       }
       else {
         Logger.error("Transformer with id " + id + " does not exist.")
@@ -91,6 +91,7 @@ object TransformerControl extends Controller with Secured {
   def edit(id: Long) = Action {
     implicit request =>
       if (id == 0) {
+        // TODO Fix this stuff
         val formData = TransformerData(0L, null, null, null, ".csv", "cp1252", "UTF-8", null, null, null, 10000,
           "<soap></soap>", "2014-01-01T00:00:00Z")
         //val form2 = transformerForm.fill(formData)

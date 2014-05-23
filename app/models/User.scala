@@ -4,6 +4,7 @@ import play.api.db._
 import play.api.Play.current
 import anorm._
 import anorm.SqlParser._
+import play.api.Logger
 
 
 case class User(email: String, password: String) {
@@ -56,11 +57,35 @@ object User {
   }
 
 
+  /**
+   * Create a new user account
+   */
+  def create(email: String, password: String): Option[Long] = {
+    DB.withConnection {
+      implicit c =>
+        SQL(
+          """
+            insert into account
+            (email, password)
+            values({email},{password})
+          """.stripMargin
+        ).on(
+            'email -> email,
+            'password -> password
+          ).executeInsert()
+    }
+  }
+
+
+
 
   /**
    * Authenticate a User.
    */
   def authenticate(email: String, password: String): Boolean = {
+    // TODO Fix Use hashing/salting
+    Logger.debug(email + " " + password)
+    // https://stackoverflow.com/questions/18262425/how-to-hash-password-in-play-framework-maybe-with-bcrypt
     DB.withConnection {
       implicit c =>
         SQL(
@@ -72,13 +97,12 @@ object User {
         ).on(
             'email -> email,
             'password -> password
-        ).using(user).singleOpt
+          ).using(user).singleOpt
         match {
-          case Some(myUser)  => true
-          case None => false
+          case Some(myUser) => true
+          case _ => false
         }
     }
-
   }
 
 

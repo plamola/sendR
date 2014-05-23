@@ -12,7 +12,7 @@ class StatusReportActor extends Actor {
 
   def receive = {
     case message : String =>
-      Logger.debug(self.toString + " - Doing some reporting ")
+      Logger.trace(self.toString + " - Doing some reporting ")
       ImportMangerSystem.reportOnAllSuperVisors()
   }
 

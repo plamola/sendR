@@ -26,27 +26,28 @@ class Global extends GlobalSettings {
   }
 
   def startReporter() {
-        implicit var system = ActorSystem.create("reporting")
-        val reporter = system.actorOf(Props[StatusReportActor],"statusreport")
-        Akka.system.scheduler.schedule(
-          Duration.create(0, TimeUnit.MILLISECONDS),
-          Duration.create(10, TimeUnit.SECONDS),
-          reporter, "status report please")
+    implicit var system = ActorSystem.create("reporting")
+    val reporter = system.actorOf(Props[StatusReportActor],"statusreport")
+    Akka.system.scheduler.schedule(
+      Duration.create(0, TimeUnit.MILLISECONDS),
+      Duration.create(10, TimeUnit.SECONDS),
+      reporter, "status report please")
   }
 
 }
-
-
 
 /**
  * Initial set of data to be loaded
  */
 object InitialData {
   def insert() {
-//    if (Ebean.find(classOf[User]).findRowCount eq 0) {
-//      val all: Map[String, java.util.List[AnyRef]] = Yaml.load("initial-data.yml").asInstanceOf[Map[String, List[AnyRef]]]
-//      Ebean.save(all.get("users"))
-//    }
+    val defaultEmail : String = "sendr@localhost"
+    User.findByEmail(defaultEmail) match {
+      case Some(user) => // Nothing to create
+      case None => User.create(defaultEmail,"klJJS13j#k")
+    }
+
+    // TODO Fix Initial Data
 //    if (Ebean.find(classOf[Transformer]).findRowCount eq 0) {
 //      val all: Map[String, java.util.List[AnyRef]] = Yaml.load("transformers.yml").asInstanceOf[Map[String, List[AnyRef]]]
 //      import scala.collection.JavaConversions._
@@ -58,6 +59,7 @@ object InitialData {
 
 object ExistingData {
   def upgrade() {
+    // TODO Fix Existing Data
 //    for (transformer <- Transformer.all) {
 //      if (transformer.version < 1) {
 //        val message: String = transformer.webserviceTemplate

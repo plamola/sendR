@@ -14,7 +14,8 @@ object ApplicationBuild extends Build {
     "org.webjars" % "angularjs" % "1.2.9" exclude("org.webjars", "jquery"),
     "org.webjars" % "requirejs-domready" % "2.0.1" exclude("org.webjars", "jquery"),
     "org.webjars" % "requirejs" % "2.1.10" exclude("org.webjars", "jquery"),
-    "net.sf.opencsv" % "opencsv" % "2.3"
+    "net.sf.opencsv" % "opencsv" % "2.3",
+    "org.mindrot" % "jbcrypt" % "0.3m"
   )
 
   val main = Project(appName, appVersion, appDependencies).settings(

@@ -11,7 +11,7 @@ object ImportMangerSystem {
   var system = ActorSystem.create(SYSTEMNAME)
 
 
-  def startImportManager(workers: Int, transformer: Transformer) {
+  def startTransformerSupervisor(workers: Int, transformer: Transformer) {
     val supervisor = findTransformer(transformer.id)
     if (supervisor != null) {
         supervisor.tell("Lets restart", supervisor)
@@ -22,7 +22,7 @@ object ImportMangerSystem {
     }
   }
 
-  def stopImportManager(id: Long) {
+  def stopTransformerSupervisor(id: Long) {
     val supervisor: ActorRef = findTransformer(id)
     if (supervisor != null) {
       supervisor.tell(PoisonPill.getInstance, supervisor)
@@ -30,7 +30,7 @@ object ImportMangerSystem {
     }
   }
 
-  def pauseImportManager(id: Long) {
+  def pauseTransformerSupervisor(id: Long) {
     val supervisor: ActorRef = findTransformer(id)
     if (supervisor != null) {
       supervisor.tell(new SupervisorCommand(SupervisorCommandType.PAUSE), supervisor)
