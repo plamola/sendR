@@ -38,8 +38,6 @@ object TransformerControl extends Controller with Secured {
     implicit request =>
       Transformer.findById(id) match {
         case Some(tr) =>
-//          val mgr: ImportMangerSystem = ImportMangerSystemSingleton.getInstance
-//          mgr.startImportManager(getNumberOfWorkers, tr)
           ImportMangerSystem.startImportManager(getNumberOfWorkers, tr)
         case None =>
           Logger.error("Transformer with id " + id + " does not exist.")
@@ -51,8 +49,6 @@ object TransformerControl extends Controller with Secured {
     implicit request =>
       if (checkIfTransformerExists(id)) {
         Logger.debug("Contoller: Pause/Resume ImportManager for " + id)
-//        val mgr: ImportMangerSystem = ImportMangerSystemSingleton.getInstance
-//        mgr.pauseImportManager(id)
         ImportMangerSystem.pauseImportManager(id)
       }
       else {
@@ -65,8 +61,6 @@ object TransformerControl extends Controller with Secured {
     implicit request =>
       if (checkIfTransformerExists(id)) {
         Logger.debug("Contoller: Stopping ImportManager for " + id)
-//        val mgr: ImportMangerSystem = ImportMangerSystemSingleton.getInstance
-//        mgr.stopImportManager(id)
         ImportMangerSystem.stopImportManager(id)
       }
       else {
@@ -127,7 +121,7 @@ object TransformerControl extends Controller with Secured {
     implicit request =>
       Transformer.cloneTransformer(sourceId) match {
         case Some(cloned) =>
-          Redirect(routes.SupervisorControl.edit(cloned.id))
+          Redirect(routes.TransformerControl.edit(cloned.id))
         case None =>
           Redirect(routes.Application.index()).flashing("error" -> "Cloning of transformer failed")
       }

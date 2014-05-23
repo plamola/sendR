@@ -13,13 +13,13 @@ GET     /logout                     controllers.Application.logout()
 
 
 # Supervisor control
-POST    /start/:id                  controllers.SupervisorControl.start(id: Long)
-POST    /pause/:id                  controllers.SupervisorControl.pause(id: Long)
-POST    /stop/:id                   controllers.SupervisorControl.stop(id: Long)
-GET     /edit/:id                   controllers.SupervisorControl.edit(id: Long)
-POST    /save/:id                   controllers.SupervisorControl.save(id: Long)
-POST    /delete/:id                 controllers.SupervisorControl.delete(id: Long)
-POST    /clone/:id                  controllers.SupervisorControl.cloneThisTransformer(id: Long)
+POST    /start/:id                  controllers.TransformerControl.start(id: Long)
+POST    /pause/:id                  controllers.TransformerControl.pause(id: Long)
+POST    /stop/:id                   controllers.TransformerControl.stop(id: Long)
+GET     /edit/:id                   controllers.TransformerControl.edit(id: Long)
+POST    /save/:id                   controllers.TransformerControl.save(id: Long)
+POST    /delete/:id                 controllers.TransformerControl.delete(id: Long)
+POST    /clone/:id                  controllers.TransformerControl.cloneThisTransformer(id: Long)
 
 # Status Feed
 GET     /statusFeedAll               controllers.ServerSendEvents.statusFeedAll
