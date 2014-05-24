@@ -1,4 +1,5 @@
 import models.{Transformer, User}
+import play.api.Logger
 
 /**
  * Author: matthijs 
@@ -11,9 +12,16 @@ object InitialData {
 
     // Create a default user
     val defaultEmail : String = "sendr@localhost"
+    val defaultPassword : String = "klJJS13j#k"
     User.findByEmail(defaultEmail) match {
-      case Some(user) => // Nothing to create
-      case None => User.create(defaultEmail,"klJJS13j#k")
+      case Some(user) =>
+        if (user.password.equals(defaultPassword)) {
+          Logger.debug("Password is unhashed, removing and recreating account")
+          User.delete(defaultEmail)
+          User.create(defaultEmail,defaultPassword)
+        }
+      // Nothing to create
+      case None => User.create(defaultEmail,defaultPassword)
     }
 
     // Create an example transformer

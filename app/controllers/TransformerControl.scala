@@ -91,7 +91,7 @@ object TransformerControl extends Controller with Secured {
   def edit(id: Long) = Action {
     implicit request =>
       if (id == 0) {
-        // TODO Fix this stuff
+        // TODO Fix this stuff - show proper default
         val formData = TransformerData(0L, null, null, null, ".csv", "cp1252", "UTF-8", null, null, null, 10000,
           "<soap></soap>", "2014-01-01T00:00:00Z")
         //val form2 = transformerForm.fill(formData)
