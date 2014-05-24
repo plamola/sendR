@@ -16,7 +16,6 @@ class Global extends GlobalSettings {
 
   override def onStart(app: Application) {
     InitialData.insert()
-    ExistingData.upgrade()
     startReporter()
     Logger.info("Application has started")
   }
@@ -36,38 +35,3 @@ class Global extends GlobalSettings {
 
 }
 
-/**
- * Initial set of data to be loaded
- */
-object InitialData {
-  def insert() {
-    val defaultEmail : String = "sendr@localhost"
-    User.findByEmail(defaultEmail) match {
-      case Some(user) => // Nothing to create
-      case None => User.create(defaultEmail,"klJJS13j#k")
-    }
-
-    // TODO Fix Initial Data
-//    if (Ebean.find(classOf[Transformer]).findRowCount eq 0) {
-//      val all: Map[String, java.util.List[AnyRef]] = Yaml.load("transformers.yml").asInstanceOf[Map[String, List[AnyRef]]]
-//      import scala.collection.JavaConversions._
-//      for (key <- all.keySet) {
-//        Ebean.save(all.get(key))
-//      }
-    }
-  }
-
-object ExistingData {
-  def upgrade() {
-    // TODO Fix Existing Data
-//    for (transformer <- Transformer.all) {
-//      if (transformer.version < 1) {
-//        val message: String = transformer.webserviceTemplate
-//        transformer.webserviceTemplate = message.replace("{eisTimeStamp}", "{timestamp}")
-//        transformer.version = 1
-//        Transformer.update(transformer)
-//      }
-//    }
-  }
-
-}

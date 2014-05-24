@@ -23,7 +23,9 @@ case class Transformer(
   webserviceTimeout: Int,
   webserviceTemplate: String,
   timeStampString: String,
-  version: Int)
+  version: Int)     {
+  var template : String = webserviceTemplate
+}
 
 
 
