@@ -10,20 +10,19 @@ import org.joda.time.DateTime
  * To change this template use File | Settings | File Templates.
  */
 object WorkerResultStatus extends Enumeration {
-  type  Status = Value
-  val DONE,FAILED,TIMEOUT,READY,SUICIDE = Value
-
+  type Status = Value
+  val DONE, FAILED, TIMEOUT, READY, SUICIDE, NO_WORK = Value
 }
 
 class WorkerResult(state: WorkerResultStatus.Status) {
 
-  private var result: String = null
+  var status: WorkerResultStatus.Status = state
+  var result: String = null
   private var failedInput: String = null
   private var lineNumber: Long = 0L
-  private val start: DateTime = new DateTime
-  private var end: DateTime = this.start
-  var status: WorkerResultStatus.Status = state
 
+  private val start: DateTime = new DateTime
+  private val end: DateTime = this.start
 
 
   def getFailedInput: String = {
@@ -41,16 +40,6 @@ class WorkerResult(state: WorkerResultStatus.Status) {
   def setLineNumber(lineNumber: Long) {
     this.lineNumber = lineNumber
   }
-
-
-//  def getStatus: WorkerResultStatus.Status = {
-//    this.status
-//  }
-//
-//  def setStatus(status: WorkerResultStatus.Status) {
-//    this.status = status
-//    this.end = new DateTime
-//  }
 
   def getResult: String = {
     result

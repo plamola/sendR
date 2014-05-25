@@ -16,7 +16,8 @@ import java.lang.Thread.sleep
 class DummyWorkerActor(var inJobController : ActorRef) extends AbstractWorkerActor(inJobController) {
 
 
-  protected def processPayload(payload: Payload, result: WorkerResult) : WorkerResult = {
+  protected def processPayload(payload: Payload) : WorkerResult = {
+    val result: WorkerResult = new WorkerResult(WorkerResultStatus.FAILED)
     try {
       val rand: Random = new Random
       sleep((rand.nextInt(200) + 1) * 100)

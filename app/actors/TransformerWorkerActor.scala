@@ -5,60 +5,104 @@ import models.Transformer
 import org.apache.commons.lang3.StringUtils
 import play.Logger
 import play.api.libs.ws._
-import support.bulkImport.{WorkerResultStatus, Payload, SOAPCreator, WorkerResult}
+import support.bulkImport._
 import au.com.bytecode.opencsv.CSVParser
 import java.util.regex.Matcher
 import java.util.regex.Pattern
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{Future, ExecutionContext}
 import ExecutionContext.Implicits.global
+import play.api.libs.ws.WS.WSRequestHolder
+import java.net.ConnectException
 
-class TransformerWorkerActor(val inJobController: ActorRef, val transformer: Transformer) extends AbstractWorkerActor(inJobController) {
+class TransformerWorkerActor(val supervisor: ActorRef, val transformer: Transformer, fileActor : ActorRef) extends AbstractWorkerActor(supervisor) {
 
-  override protected def processPayload(payload: Payload, result: WorkerResult) : WorkerResult = {
-    var soapBody: String = null
-    try {
-      soapBody = tranformLineToSoapMessage(payload, transformer, result)
-      if (soapBody == null) {
-        result.status=WorkerResultStatus.FAILED
-        result
-      }
-    }
-    catch {
-      case e: Exception =>
-        result.setResult(e.getMessage)
-        result.status=WorkerResultStatus.FAILED
-        result
-    }
-    result.setLineNumber(payload.getLineNumber)
-    try {
-      Logger.trace(self.toString + " - Ready to send request to " + transformer.webserviceURL)
-      WS.url(transformer.webserviceURL)
-        .withHeaders("content-type" -> {"text/xml;charset="+ transformer.webserviceCharSet})
-        .withRequestTimeout(transformer.webserviceTimeout)
-        .post(soapBody).map( response =>
-          if (response.body.indexOf("<soap:Fault>") > 0) {
-            result.setFailedInput(payload.getLine)
-            result.setResult("Failed: [line: " + payload.getLineNumber + "] " + response.status + ": " + response.body)
-            result.status=WorkerResultStatus.FAILED
-          } else {
-            result.setResult("Did: [line: " + payload.getLineNumber + "] " + payload.getLine)
-            result.status=WorkerResultStatus.DONE
-          }
-        )
-      result
-    }
-    catch {
-      case e: Exception =>
-        result.setFailedInput(payload.getLine)
-        result.setResult("Failed: [line: " + payload.getLineNumber + "] " + e.getMessage)
-        result.status=WorkerResultStatus.TIMEOUT
-        result
+  val complexHolder : WSRequestHolder =
+    WS.url(transformer.webserviceURL)
+      .withHeaders("content-type" -> {"text/xml;charset=" + transformer.webserviceCharSet})
+      .withRequestTimeout(transformer.webserviceTimeout)
+
+
+  override def onReceive(message: Any) {
+    message match {
+      case payload : Payload =>
+        sendSoapMessage(payload)
+      case fileReaderStatus: FileReaderStatus =>
+        val result: WorkerResult = new WorkerResult(WorkerResultStatus.NO_WORK)
+        result.setResult("I did not get a job")
+        supervisor.tell(result, getSelf())
+      case _ =>
+        val result: WorkerResult = new WorkerResult(WorkerResultStatus.FAILED)
+        result.setResult("I do not know what you want me to do with this.")
+        sender.tell(result, getSelf())
     }
   }
 
+  override def preStart() {
+    Logger.debug(self.toString + " - Starting worker actor")
+    if (supervisor != null)
+      supervisor.tell(new WorkerResult(WorkerResultStatus.READY), getSelf())
+    if (fileActor != null)
+      fileActor.tell("let start", getSelf())
+    else
+      Logger.error("fileActor is null")
+  }
+
+
+  private def sendSoapMessage(payload: Payload) {
+
+    val result: WorkerResult = new WorkerResult(WorkerResultStatus.FAILED)
+    result.setFailedInput(payload.getLine)
+    result.setLineNumber(payload.getLineNumber)
+
+    try {
+      val soapBody = tranformLineToSoapMessage(payload, transformer)
+      val futureResponse : Future[Response] =  complexHolder.post(soapBody)
+      futureResponse onSuccess {
+        case response : Response =>
+          if (response.body.indexOf("<soap:Fault>") > 0) {
+            Logger.debug("onSuccess soap:Fault")
+            result.status = WorkerResultStatus.FAILED
+            result.setResult("Failed: [line: " + payload.getLineNumber + "] " + response.status + ": " + response.body)
+            supervisor.tell(result, getSelf())
+          } else {
+            Logger.debug("onSuccess - Done")
+            result.status = WorkerResultStatus.DONE
+            result.setResult("Did: [line: " + payload.getLineNumber + "] " + payload.getLine)
+            supervisor.tell(result, getSelf())
+            fileActor.tell("give me some more", getSelf())
+          }
+        case _ =>
+          Logger.debug("onSuccess _")
+          result.status = WorkerResultStatus.FAILED
+          result.setResult("Unexpected response to SOAP message")
+      }
+      futureResponse onFailure {
+        case t : ConnectException =>
+          Logger.trace("onFailure ConnectException")
+          result.status = WorkerResultStatus.TIMEOUT
+          result.setResult(t.getMessage)
+          supervisor.tell(result, getSelf())
+        case _ =>
+          Logger.debug("onFailure _")
+          result.status = WorkerResultStatus.FAILED
+          result.setResult("Error sending SOAP message")
+          supervisor.tell(result, getSelf())
+      }
+
+    } catch {
+      // Soap body could not be created
+      case e: Exception =>
+        result.status = WorkerResultStatus.FAILED
+        result.setResult("Failed to create SOAP message: " + e.getMessage)
+        supervisor.tell(result, getSelf())
+    }
+  }
+
+  override protected def processPayload(payload: Payload) : WorkerResult = {
+    new WorkerResult(WorkerResultStatus.FAILED)
+  }
 
   //private var xml10pattern: String = "[^" + "\u0009\r\n" + "\u0020-\uD7FF" + "\uE000-\uFFFD" + "\ud800\udc00-\udbff\udfff" + "]"
-
 
   private def replaceValuesInTemplate(template: String, values: java.util.Map[String, String]): String = {
     val sb: StringBuffer = new StringBuffer
@@ -84,7 +128,7 @@ class TransformerWorkerActor(val inJobController: ActorRef, val transformer: Tra
   }
 
 
-  private def tranformLineToSoapMessage(payload: Payload, transformer: Transformer, result: WorkerResult): String = {
+  private def tranformLineToSoapMessage(payload: Payload, transformer: Transformer): String = {
     try {
       val values: java.util.Map[String, String] = parseCsvLine(payload.getLine)
       values.put("user", transformer.webserviceUser)
@@ -95,8 +139,7 @@ class TransformerWorkerActor(val inJobController: ActorRef, val transformer: Tra
     catch {
       case e: Exception =>
         Logger.error("Parsing line [" + payload.getLineNumber + "] failed: " + e.getMessage)
-        result.setResult("Parsing line [" + payload.getLineNumber + "] failed: " + e.getMessage)
-        null
+        throw new Exception("Parsing line [" + payload.getLineNumber + "] failed: " + e.getMessage)
     }
   }
 
