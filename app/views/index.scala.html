@@ -42,9 +42,20 @@
 
                     <span  class="pull-right">
                         @if(!session.isEmpty) {
-                        <button class="btn btn-sm btn-default"  ng-click="sendStart(transformer.id)"><i class="glyphicon glyphicon-play"></i></button>
-                        <button class="btn btn-sm btn-default" ng-href="/pause/{{transformer.id}}" ng-click="sendPause(transformer.id)"><i class="glyphicon glyphicon-pause"></i></button>
-                        <button class="btn btn-sm btn-default" ng-href="/stop/{{transformer.id}}"  ng-click="sendStop(transformer.id)"><i class="glyphicon glyphicon-stop"></i></button>
+                            <button class="btn btn-sm btn-default"  ng-click="sendStart(transformer.id)"><i class="glyphicon glyphicon-play"></i></button>
+                            <button class="btn btn-sm btn-default" ng-href="/pause/{{transformer.id}}" ng-click="sendPause(transformer.id)"><i class="glyphicon glyphicon-pause"></i></button>
+                            <button class="btn btn-sm btn-default" ng-href="/stop/{{transformer.id}}"  ng-click="sendStop(transformer.id)"><i class="glyphicon glyphicon-stop"></i></button>
+
+                        <!--<span ng-hide="transformer.status">-->
+                            <!--<button class="btn btn-sm btn-default"  ng-click="sendStart(transformer.id)"><i class="glyphicon glyphicon-play"></i></button>-->
+                            <!--<button disabled="true" class="btn btn-sm btn-default" ng-href="/pause/{{transformer.id}}" ng-click="sendPause(transformer.id)"><i class="glyphicon glyphicon-pause"></i></button>-->
+                            <!--<button disabled="true" class="btn btn-sm btn-default" ng-href="/stop/{{transformer.id}}"  ng-click="sendStop(transformer.id)"><i class="glyphicon glyphicon-stop"></i></button>-->
+                         <!--</span>-->
+                        <!--<span ng-show="transformer.status">-->
+                            <!--<button ng-disabled="{{!((transformer.status=='PAUSED') || (transformer.status=='STOPPED'))}}"  class="btn btn-sm btn-default"  ng-click="sendStart(transformer.id)"><i class="glyphicon glyphicon-play"></i></button>-->
+                            <!--<button ng-disabled="{{!(transformer.status=='RUNNING')}}"                                      class="btn btn-sm btn-default" ng-href="/pause/{{transformer.id}}" ng-click="sendPause(transformer.id)"><i class="glyphicon glyphicon-pause"></i></button>-->
+                            <!--<button ng-disabled="{{!((transformer.status=='RUNNING') || (transformer.status=='PAUSED'))}}"  class="btn btn-sm btn-default" ng-href="/stop/{{transformer.id}}"  ng-click="sendStop(transformer.id)"><i class="glyphicon glyphicon-stop"></i></button>-->
+                        <!--</span>-->
                         <a class="btn btn-sm btn-primary" ng-href="/edit/{{transformer.id}}"><i class="glyphicon glyphicon-wrench"></i></a>
                         } else {
                         }

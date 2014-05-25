@@ -20,22 +20,22 @@ object FileHelper {
     if (files == null) {
       Logger.warn("No files found. Does directory " + folder + " exist and does it contain a file with the extension " + fileExtension + " ?")
       None
-    }
-    java.util.Arrays.sort(files, new Comparator[File] {
-      def compare(f1: File, f2: File): Int = {
-        f1.lastModified.compareTo(f2.lastModified)
+    } else {
+      java.util.Arrays.sort(files, new Comparator[File] {
+        def compare(f1: File, f2: File): Int = {
+          f1.lastModified.compareTo(f2.lastModified)
+        }
+      })
+      // Get a list of files which have the correct file extension
+      val fileList: Array[File] = {
+        for {importFile <- files if importFile.isFile && importFile.getName.toLowerCase.endsWith(fileExtension.toLowerCase)}
+        yield importFile
       }
-    })
-
-    // Get a list of files which have the correct file extension
-    val fileList : Array[File] = {
-      for {importFile <- files if importFile.isFile && importFile.getName.toLowerCase.endsWith(fileExtension.toLowerCase)}
-      yield importFile
+      if (fileList.length > 0)
+        Some(FileDetails(fileList.head.getName, fileList.head.getAbsolutePath, countLinesInFile(fileList.head.getAbsolutePath)))
+      else
+        None
     }
-    if (fileList.length > 0 )
-      Some(FileDetails(fileList.head.getName, fileList.head.getAbsolutePath, countLinesInFile(fileList.head.getAbsolutePath)))
-    else
-      None
   }
 
 

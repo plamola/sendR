@@ -16,7 +16,7 @@ class TransformerSupervisorActor(workers: Int, transformer: Transformer) extends
   private final val WORKERS: String = "workers"
 
   private val supervisorState: SupervisorState = new SupervisorState(workers, transformer)
-  private var fileReaderActor = startWithNewFile()
+  private var fileReaderActor : ActorRef = null//startWithNewFile()
 
   def getStatus: SupervisorState = {
     supervisorState
@@ -234,9 +234,15 @@ class TransformerSupervisorActor(workers: Int, transformer: Transformer) extends
   }
 
   override def preStart() {
-    supervisorState.setStartTime(new DateTime)
-    supervisorState.setStatus(SupervisorStateType.STARTING)
-    Logger.info(self.toString + " - Supervisor ready")
+    fileReaderActor = startWithNewFile()
+    if (fileReaderActor != null) {
+      supervisorState.setStartTime(new DateTime)
+      supervisorState.setStatus(SupervisorStateType.STARTING)
+      Logger.info(self.toString + " - Supervisor ready")
+    } else {
+      supervisorState.setStatus(SupervisorStateType.STOPPED)
+    }
+
   }
 
   override def postStop() {
