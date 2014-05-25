@@ -59,7 +59,7 @@
                         <div ng-show="transformer.status">
                             <span ng-hide="transformer.status!='STOPPED' && transformer.status!='STOPPING'" class="label label-info">Status:&nbsp;{{transformer.status}}</span>
                             <span ng-hide="transformer.status!='PAUSED' && transformer.status!='PAUSING'" class="label label-warning">Status:&nbsp;{{transformer.status}}</span>
-                            <span ng-hide="transformer.status!='STARTED' && transformer.status!='STARTING'" class="label label-success">Status:&nbsp;{{transformer.status}}</span>
+                            <span ng-hide="transformer.status!='STARTED' && transformer.status!='STARTING'  && transformer.status!='RUNNING'" class="label label-success">Status:&nbsp;{{transformer.status}}</span>
                             &nbsp;
                             <!--span class="label label-info">Workers:&nbsp;{{transformer.activeworkers}}</span>&nbsp;-->
                             <span class="label label-info">Start time:&nbsp;{{transformer.startTime}}</span>&nbsp;

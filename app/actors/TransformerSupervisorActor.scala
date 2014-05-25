@@ -61,7 +61,10 @@ class TransformerSupervisorActor(workers: Int, transformer: Transformer) extends
         sendMessageToInformer("Start request received")
         supervisorState.resetTimeOutCount()
         if (fileReaderActor != null) {
-          startWithNewFile()
+          startWorkers()
+        } else {
+          fileReaderActor = startWithNewFile()
+          //supervisorState.setStatus(SupervisorStateType.STOPPED)
         }
 
       case SupervisorCommandType.PAUSE =>
@@ -72,7 +75,12 @@ class TransformerSupervisorActor(workers: Int, transformer: Transformer) extends
           supervisorState.setStatus(SupervisorStateType.STARTING)
           supervisorState.resetTimeOutCount()
           sendMessageToInformer("Resume request received")
-          startWorkers()
+          if (fileReaderActor != null) {
+            startWorkers()
+          } else {
+            fileReaderActor = startWithNewFile()
+            startWorkers()
+          }
         } else
           sendMessageToInformer("Unable to pause/resume")
 
@@ -128,7 +136,7 @@ class TransformerSupervisorActor(workers: Int, transformer: Transformer) extends
         }
         supervisorState.incrementTimeOutCount()
         Logger.debug("[" + supervisorState.getActiveWorkers + "] " + self.toString + " - Time-out - " + wr.getResult)
-        if (supervisorState.getTimeOutcount < MAX_TIMEOUTS) {
+        if ((supervisorState.getTimeOutcount < MAX_TIMEOUTS) && (supervisorState.getStatus ne SupervisorStateType.PAUSING)) {
           sendMessageToInformer("Time-out " + wr.getResult)
           val retry: Payload = new Payload(transformer.name, wr.getLineNumber, wr.getFailedInput)
           getSender().tell(retry, getSelf())
@@ -138,6 +146,7 @@ class TransformerSupervisorActor(workers: Int, transformer: Transformer) extends
             supervisorState.setStatus(SupervisorStateType.PAUSING)
             sendMessageToInformer("To many time-outs, going to pause")
           }
+          supervisorState.incrementFailureCount()
           writeToErrorFile(wr.getFailedInput)
           getSender().tell(PoisonPill.getInstance, self)
         }
@@ -146,11 +155,21 @@ class TransformerSupervisorActor(workers: Int, transformer: Transformer) extends
         supervisorState.decrementActiveWorkers()
         Logger.debug("Worker " + sender.path + " committed suicide [" + supervisorState.getActiveWorkers + "/" + workers + "]")
         if (supervisorState.getActiveWorkers == 0) {
-          supervisorState.setStatus(SupervisorStateType.STOPPED)
           sendMessageToInformer("All workers stopped")
           Logger.info(self.toString + " - All workers stopped.")
-          if (fileReaderActor != null) {
-            fileReaderActor.tell(PoisonPill.getInstance, self)
+          if (supervisorState.getStatus eq SupervisorStateType.STOPPING) {
+            if (fileReaderActor != null) {
+              fileReaderActor.tell(PoisonPill.getInstance, self)
+            }
+            supervisorState.setStatus(SupervisorStateType.STOPPED)
+          }
+          if (supervisorState.getStatus eq SupervisorStateType.PAUSING)
+            supervisorState.setStatus(SupervisorStateType.PAUSED)
+          if (supervisorState.getStatus eq SupervisorStateType.RUNNING) {
+            // All workers died while status running -> file must be empty -> kill filereader actor
+            if (fileReaderActor != null)
+              fileReaderActor.tell(PoisonPill.getInstance, self)
+
           }
         }
 
@@ -176,6 +195,8 @@ class TransformerSupervisorActor(workers: Int, transformer: Transformer) extends
           getContext().getChild("file-reader")
         }
       case None =>
+        supervisorState.setStatus(SupervisorStateType.STOPPED)
+        sendMessageToInformer("No files found.")
         Logger.debug("No files found.")
         null
     }

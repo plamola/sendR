@@ -65,7 +65,7 @@ object FileHelper {
     try {
       val newfile: File = new File(String.format("%s.%s", file.getAbsolutePath.substring(0, file.getAbsolutePath.lastIndexOf(".")), extension))
       if (!file.renameTo(newfile)) {
-        throw new Exception("Rename failed.")
+        throw new Exception("Rename failed. Old name: " + file.getAbsolutePath + " new name: " + newfile.getAbsolutePath)
       }
       else newfile
     }
