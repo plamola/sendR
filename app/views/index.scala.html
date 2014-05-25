@@ -75,10 +75,10 @@
                             <!--span class="label label-info">Workers:&nbsp;{{transformer.activeworkers}}</span>&nbsp;-->
                             <span class="label label-info">Start time:&nbsp;{{transformer.startTime}}</span>&nbsp;
                             <span class="label label-info" ng-hide="transformer.status!='STOPPED'">Stop time:&nbsp;{{transformer.stopTime}}</span>
-                            <br/>
-                            <span class="label label-info">File:&nbsp;{{transformer.currentFile}}</span>
-                            <br/>
-                            <span class="label label-info"># lines:&nbsp;{{transformer.nrOfLines}}</span>&nbsp;
+                            <br ng-show="transformer.currentFile"/>
+                            <span ng-show="transformer.currentFile" class="label label-info">File:&nbsp;{{transformer.currentFile}}</span>
+                            <br ng-show="transformer.nrOfLines"/>
+                            <span class="label label-info"    ng-show="transformer.nrOfLines"># lines:&nbsp;{{transformer.nrOfLines}}</span>&nbsp;
                             <span class="label label-success" ng-hide="transformer.successes=='0'">Success:&nbsp;{{transformer.successes}}</span>&nbsp;
                             <span class="label label-danger"  ng-hide="transformer.failures=='0'">Errors:&nbsp;{{transformer.failures}}</span>&nbsp;
                             <span class="label label-warning" ng-hide="transformer.timeouts=='0'">Time-outs:&nbsp;{{transformer.timeouts}}</span>
