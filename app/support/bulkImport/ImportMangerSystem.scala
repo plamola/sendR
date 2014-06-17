@@ -14,8 +14,8 @@ object ImportMangerSystem {
   def startTransformerSupervisor(workers: Int, transformer: Transformer) {
     val supervisor = findTransformer(transformer.id)
     if (supervisor != null) {
-        supervisor.tell("Lets restart", supervisor)
-        supervisor.tell(new SupervisorCommand(SupervisorCommandType.START), supervisor)
+        //supervisor ! "Lets restart"
+        supervisor ! new SupervisorCommand(SupervisorCommandType.START)
     } else {
         addTransformer(transformer.id, system.actorOf(Props(new TransformerSupervisorActor(workers, transformer)), transformer.name + "-" + transformer.id))
         Logger.info("Start import of " + transformer.importPath)
@@ -25,7 +25,7 @@ object ImportMangerSystem {
   def stopTransformerSupervisor(id: Long) {
     val supervisor: ActorRef = findTransformer(id)
     if (supervisor != null) {
-      supervisor.tell(PoisonPill.getInstance, supervisor)
+      supervisor ! PoisonPill.getInstance
       removeTransformer(id)
     }
   }
@@ -33,7 +33,7 @@ object ImportMangerSystem {
   def pauseTransformerSupervisor(id: Long) {
     val supervisor: ActorRef = findTransformer(id)
     if (supervisor != null) {
-      supervisor.tell(new SupervisorCommand(SupervisorCommandType.PAUSE), supervisor)
+      supervisor ! new SupervisorCommand(SupervisorCommandType.PAUSE)
     }
   }
 

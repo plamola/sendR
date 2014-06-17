@@ -31,14 +31,14 @@ class FileReaderActor(mySupervisor: ActorRef, filePath : String, fileContentType
     currentFile = FileHelper.changeFileExtension(new File(filePath), "busy_" + new DateTime().toString("yyyyMMdd-HHmmss"))
     openFile()
     if (mySupervisor != null)
-      mySupervisor.tell(new FileReaderStatus(FileReaderStatusType.READY), getSelf())
+      mySupervisor ! new FileReaderStatus(FileReaderStatusType.READY)
   }
 
   override def postStop() {
     closeFile()
     FileHelper.changeFileExtension(currentFile, "imported_" + new DateTime().toString("yyyyMMdd-HHmmss"))
     Logger.debug(self.toString + " - Terminated filereader ")
-    mySupervisor.tell(new FileReaderStatus(FileReaderStatusType.SUICIDE), getSelf())
+    mySupervisor ! new FileReaderStatus(FileReaderStatusType.SUICIDE)
   }
 
   def onReceive(message: Any) {
@@ -46,9 +46,9 @@ class FileReaderActor(mySupervisor: ActorRef, filePath : String, fileContentType
       case str: String =>
         getNextLine match {
           case Some(line) =>
-            sender.tell(new Payload("TODO : Remove this", incrementLineNumberCount(), line), self)
+            sender ! new Payload(incrementLineNumberCount(), line, currentFile.getAbsolutePath)
           case None =>
-            sender.tell(new FileReaderStatus(FileReaderStatusType.NO_WORK), self)
+            sender ! new FileReaderStatus(FileReaderStatusType.NO_WORK)
             Logger.debug("Out of work - no more file")
         }
       case _ =>  Logger.debug("Unknown message type")

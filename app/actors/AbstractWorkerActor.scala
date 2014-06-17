@@ -11,11 +11,9 @@ abstract class AbstractWorkerActor(mySupervisor: ActorRef) extends UntypedActor 
 
     message match {
       case payload : Payload =>
-        mySupervisor.tell(processPayload(payload), getSelf())
+        mySupervisor ! processPayload(payload)
       case _ =>
-        val result: WorkerResult = new WorkerResult(WorkerResultStatus.FAILED)
-        result.setResult("I do not know what you want me to do with this.")
-        sender.tell(result, getSelf())
+        sender ! new WorkerResult(WorkerResultStatus.FAILED,Some("I do not know what you want me to do with this."), None)
     }
   }
 
@@ -24,12 +22,12 @@ abstract class AbstractWorkerActor(mySupervisor: ActorRef) extends UntypedActor 
   override def preStart() {
     Logger.debug(self.toString + " - Starting worker")
     if (mySupervisor != null)
-      mySupervisor.tell(new WorkerResult(WorkerResultStatus.READY), getSelf())
+      mySupervisor ! new WorkerResult(WorkerResultStatus.READY, None, None)
   }
 
   override def postStop() {
     Logger.debug(self.toString + " - Terminated worker ")
-    mySupervisor.tell(new WorkerResult(WorkerResultStatus.SUICIDE), getSelf())
+    mySupervisor ! new WorkerResult(WorkerResultStatus.SUICIDE,None, None)
   }
 
 }
