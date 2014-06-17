@@ -144,6 +144,7 @@ class TransformerSupervisorActor(workers: Int, transformer: Transformer) extends
             //sendMessageToInformer("All workers have reported for duty.")
           }
           Logger.trace(self.toString + " - reported for duty")
+          fileReaderActor.tell("give hime something to do",getSender())
 
         case WorkerResultStatus.DONE =>
           supervisorState.incrementSuccesCount()
@@ -152,6 +153,7 @@ class TransformerSupervisorActor(workers: Int, transformer: Transformer) extends
             sendMessageToInformer(self.toString + " - Did another 1000")
             Logger.debug(" [" + supervisorState.getActiveWorkers + "] " + self.toString + " - Success count: " + supervisorState.getSuccesCount)
           }
+          fileReaderActor.tell("give hime some more",getSender())
 
         case WorkerResultStatus.SUICIDE =>
           supervisorState.decrementActiveWorkers()
@@ -203,7 +205,7 @@ class TransformerSupervisorActor(workers: Int, transformer: Transformer) extends
   }
 
   private def startWorkers() {
-    getContext().actorOf(Props(new TransformerWorkerActor(self, transformer, fileReaderActor))
+    getContext().actorOf(Props(new TransformerWorkerActor(self, transformer))
       .withRouter(new RoundRobinRouter(supervisorState.getWorkers)), WORKERS)
     sendMessageToInformer("Starting workers")
   }

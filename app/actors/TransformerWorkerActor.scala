@@ -14,7 +14,7 @@ import ExecutionContext.Implicits.global
 import play.api.libs.ws.WS.WSRequestHolder
 import java.net.ConnectException
 
-class TransformerWorkerActor(val supervisor: ActorRef, val transformer: Transformer, fileActor : ActorRef) extends AbstractWorkerActor(supervisor) {
+class TransformerWorkerActor(val supervisor: ActorRef, val transformer: Transformer) extends AbstractWorkerActor(supervisor) {
 
   val complexHolder : WSRequestHolder =
     WS.url(transformer.webserviceURL)
@@ -39,10 +39,10 @@ class TransformerWorkerActor(val supervisor: ActorRef, val transformer: Transfor
     Logger.debug(self.toString + " - Starting worker actor")
     if (supervisor != null)
       supervisor ! new WorkerResult(WorkerResultStatus.READY,None,None)
-    if (fileActor != null)
-      fileActor ! "let start"
-    else
-      Logger.error("fileActor is null")
+//    if (fileActor != null)
+//      fileActor ! "let start"
+//    else
+//      Logger.error("fileActor is null")
   }
 
 
@@ -57,8 +57,7 @@ class TransformerWorkerActor(val supervisor: ActorRef, val transformer: Transfor
             supervisor ! new WorkerResult(WorkerResultStatus.FAILED,Some("Failed: [line: " + payload.getLineNumber + "] " + response.status + ": " + response.body),Some(payload))
           } else {
             Logger.debug("onSuccess - Done")
-            supervisor ! new WorkerResult(WorkerResultStatus.FAILED,Some("Did: [line: " + payload.getLineNumber + "] " + payload.getLine),Some(payload))
-            fileActor ! "give me some more"
+            supervisor ! new WorkerResult(WorkerResultStatus.DONE,Some("Did: [line: " + payload.getLineNumber + "] " + payload.getLine),Some(payload))
           }
         case _ =>
           Logger.debug("onSuccess _")
