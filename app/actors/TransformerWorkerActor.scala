@@ -1,6 +1,6 @@
 package actors
 
-import akka.actor.ActorRef
+import akka.actor.{UntypedActor, ActorRef}
 import models.Transformer
 import org.apache.commons.lang3.StringUtils
 import play.Logger
@@ -14,7 +14,7 @@ import ExecutionContext.Implicits.global
 import play.api.libs.ws.WS.WSRequestHolder
 import java.net.ConnectException
 
-class TransformerWorkerActor(val supervisor: ActorRef, val transformer: Transformer) extends AbstractWorkerActor(supervisor) {
+class TransformerWorkerActor(val supervisor: ActorRef, val transformer: Transformer) extends UntypedActor {
 
   val complexHolder : WSRequestHolder =
     WS.url(transformer.webserviceURL)
@@ -39,10 +39,6 @@ class TransformerWorkerActor(val supervisor: ActorRef, val transformer: Transfor
     Logger.debug(self.toString + " - Starting worker actor")
     if (supervisor != null)
       supervisor ! new WorkerResult(WorkerResultStatus.READY,None,None)
-//    if (fileActor != null)
-//      fileActor ! "let start"
-//    else
-//      Logger.error("fileActor is null")
   }
 
 
@@ -78,11 +74,6 @@ class TransformerWorkerActor(val supervisor: ActorRef, val transformer: Transfor
       case e: Exception =>
         supervisor ! new WorkerResult(WorkerResultStatus.FAILED,Some("Failed to create SOAP message: " + e.getMessage),Some(payload))
     }
-  }
-
-
-  override protected def processPayload(payload: Payload) : WorkerResult = {
-    new WorkerResult(WorkerResultStatus.FAILED,None,Some(payload))
   }
 
   //private var xml10pattern: String = "[^" + "\u0009\r\n" + "\u0020-\uD7FF" + "\uE000-\uFFFD" + "\ud800\udc00-\udbff\udfff" + "]"
