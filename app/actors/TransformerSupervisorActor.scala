@@ -113,6 +113,7 @@ class TransformerSupervisorActor(workers: Int, transformer: Transformer) extends
             case None => Logger.error("Received 'FAILED' without payload")
           }
           sendMessageToInformer("Error: " + wr.getResult)
+          fileReaderActor.tell("give him something else",getSender())
 
         case WorkerResultStatus.TIMEOUT =>
           supervisorState.incrementTimeOutCount()
@@ -155,6 +156,11 @@ class TransformerSupervisorActor(workers: Int, transformer: Transformer) extends
           }
           fileReaderActor.tell("give hime some more",getSender())
 
+        case WorkerResultStatus.NO_WORK =>
+
+          Logger.debug("Killing worker " + getSender().toString())
+          getSender ! PoisonPill.getInstance
+
         case WorkerResultStatus.SUICIDE =>
           supervisorState.decrementActiveWorkers()
           Logger.debug("Worker " + sender.path + " committed suicide [" + supervisorState.getActiveWorkers + "/" + workers + "]")
@@ -176,8 +182,6 @@ class TransformerSupervisorActor(workers: Int, transformer: Transformer) extends
             }
           }
 
-        case WorkerResultStatus.NO_WORK =>
-          getSender ! PoisonPill.getInstance
 
         case _ =>
       }

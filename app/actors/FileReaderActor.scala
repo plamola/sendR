@@ -49,9 +49,9 @@ class FileReaderActor(mySupervisor: ActorRef, filePath : String, fileContentType
             sender ! new Payload(incrementLineNumberCount(), line, currentFile.getAbsolutePath)
           case None =>
             sender ! new FileReaderStatus(FileReaderStatusType.NO_WORK)
-            Logger.debug("Out of work - no more file")
+            Logger.debug("Out of work - no more file: " + sender.toString())
         }
-      case _ =>  Logger.debug("Unknown message type")
+      case _ =>  Logger.debug("Unknown message type from " + sender.toString())
     }
   }
 

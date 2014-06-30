@@ -3,8 +3,10 @@ package actors
 import akka.actor.{UntypedActor, ActorRef}
 import models.Transformer
 import org.apache.commons.lang3.StringUtils
+import org.joda.time.DateTime
 import play.Logger
 import play.api.libs.ws._
+import support.FileHelper
 import support.bulkImport._
 import au.com.bytecode.opencsv.CSVParser
 import java.util.regex.Matcher
@@ -27,11 +29,9 @@ class TransformerWorkerActor(val supervisor: ActorRef, val transformer: Transfor
       case payload : Payload =>
         sendSoapMessage(payload)
       case fileReaderStatus: FileReaderStatus =>
-        val result: WorkerResult = new WorkerResult(WorkerResultStatus.NO_WORK,Some("I did not get a job"),None)
-        sender ! result
+        supervisor ! new WorkerResult(WorkerResultStatus.NO_WORK,Some("I did not get a job"),None)
       case _ =>
-        val result: WorkerResult = new WorkerResult(WorkerResultStatus.FAILED,Some("I do not know what you want me to do with this."),None)
-        sender ! result
+        supervisor ! new WorkerResult(WorkerResultStatus.FAILED,Some("I do not know what you want me to do with this."),None)
     }
   }
 
@@ -41,6 +41,9 @@ class TransformerWorkerActor(val supervisor: ActorRef, val transformer: Transfor
       supervisor ! new WorkerResult(WorkerResultStatus.READY,None,None)
   }
 
+  override def postStop() {
+    supervisor ! new WorkerResult(WorkerResultStatus.SUICIDE,None,None)
+  }
 
   private def sendSoapMessage(payload: Payload) {
     try {
@@ -50,6 +53,7 @@ class TransformerWorkerActor(val supervisor: ActorRef, val transformer: Transfor
         case response : Response =>
           if (response.body.indexOf("<soap:Fault>") > 0) {
             Logger.debug("onSuccess soap:Fault")
+            // TODO get the faultcode && faultsting instead of returning the whole soap body
             supervisor ! new WorkerResult(WorkerResultStatus.FAILED,Some("Failed: [line: " + payload.getLineNumber + "] " + response.status + ": " + response.body),Some(payload))
           } else {
             Logger.debug("onSuccess - Done")

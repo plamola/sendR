@@ -20,7 +20,7 @@ class WorkerResult(state: WorkerResultStatus.Status, result : Option[String], pa
   private val end: DateTime = new DateTime
 
   def status: WorkerResultStatus.Status = state
-  def getResult: Option[String] = result
+  def getResult: String = result.getOrElse("")
 
   def getProcessingTime: Long = {
     payLoad  match {
