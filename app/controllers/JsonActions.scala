@@ -20,13 +20,12 @@ object JsonActions extends Controller {
     }
   }
 
-  def transformersToJson(transformers :List[Transformer]) : JsValue = {
+  def transformersToJson(transformers :List[Transformer]) : JsValue =
     Json.toJson(transformers)
-  }
 
-  def index = Action {
-    val transformers = Transformer.all
-    Ok(Json.toJson(transformersToJson(transformers)))
-  }
+
+  def index =
+    Ok(Json.toJson(transformersToJson(Transformer.all)))
+
 
 }

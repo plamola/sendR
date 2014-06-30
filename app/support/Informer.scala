@@ -10,10 +10,6 @@ object Informer {
   def getInstance = this
 
   def sendMessage( status: SupervisorState, message: String) {
-    val now: String = DateTime.now.toString("yyyy-MM-dd HH:mm:ss")
-    val startTime = status.getStartTime.toString("yyyy-MM-dd HH:mm:ss")
-    val stopTime = status.getStopTime.toString("yyyy-MM-dd HH:mm:ss")
-
     val msg = Json.obj(
       "channelId" -> status.getTransformerId,
       "channelName" -> status.getTransformerName,
@@ -27,9 +23,9 @@ object Informer {
       "text" ->  message,
       "currentFile" -> status.getCurrentFile,
       "nrOfLines" -> status.getNrOfLines,
-      "startTime" -> startTime,
-      "stopTime" -> stopTime,
-      "time" -> now
+      "startTime" -> status.getStartTime.toString("yyyy-MM-dd HH:mm:ss"),
+      "stopTime" -> status.getStopTime.toString("yyyy-MM-dd HH:mm:ss"),
+      "time" -> DateTime.now.toString("yyyy-MM-dd HH:mm:ss")
     )
     ServerSendEvents.outputChannel.push(msg)
   }

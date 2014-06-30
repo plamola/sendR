@@ -8,14 +8,6 @@ import support.bulkImport.ImportMangerSystem
 import play.api.{Play, Logger}
 import play.api.Play.current
 
-/**
- * Created with IntelliJ IDEA.
- * User: matthijs
- * Date: 7/16/13
- * Time: 8:38 PM
- * To change this template use File | Settings | File Templates.
- */
-
 case class TransformerData(
                             id: Long,
                             name: String,
@@ -51,7 +43,6 @@ object TransformerControl extends Controller with Secured {
       "timeStampString" -> default(text,"2014-01-01T00:00:00Z")
     )(TransformerData.apply)(TransformerData.unapply)
   )
-
 
   def start(id: Long) = Action {
     implicit request =>

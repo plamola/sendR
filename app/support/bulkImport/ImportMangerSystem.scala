@@ -14,11 +14,10 @@ object ImportMangerSystem {
   def startTransformerSupervisor(workers: Int, transformer: Transformer) {
     val supervisor = findTransformer(transformer.id)
     if (supervisor != null) {
-        //supervisor ! "Lets restart"
         supervisor ! new SupervisorCommand(SupervisorCommandType.START)
     } else {
         addTransformer(transformer.id, system.actorOf(Props(new TransformerSupervisorActor(workers, transformer)), transformer.name + "-" + transformer.id))
-        Logger.info("Start import of " + transformer.importPath)
+        Logger.info("Start import of " + transformer.importPath + " [" + transformer.id+ "]")
     }
   }
 
@@ -40,7 +39,7 @@ object ImportMangerSystem {
   def reportOnAllSuperVisors() {
     import scala.collection.JavaConversions._
     for (actor <- map.values) {
-      actor.tell(new SupervisorCommand(SupervisorCommandType.REPORT), actor)
+      actor ! new SupervisorCommand(SupervisorCommandType.REPORT)
     }
   }
 
@@ -58,7 +57,5 @@ object ImportMangerSystem {
     if (map.containsKey(id))
       map.remove(id)
   }
-
-
 
 }

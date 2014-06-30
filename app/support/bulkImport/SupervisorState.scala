@@ -14,7 +14,7 @@ import models.Transformer
 
 object SupervisorStateType  extends Enumeration {
   type Status = Value
-  val STARTING, RUNNING,PAUSING,PAUSED,RESUMING,STOPPING,STOPPED = Value
+  val STARTING, RUNNING, PAUSING, PAUSED, RESUMING, STOPPING, STOPPED = Value
 }
 
 class SupervisorState(workers: Int, transformer: Transformer) {
