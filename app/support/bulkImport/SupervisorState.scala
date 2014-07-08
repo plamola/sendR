@@ -29,6 +29,9 @@ class SupervisorState(workers: Int, transformer: Transformer) {
   def setCurrentFileSpecs(currentFile: String, nrOfLines: Long) {
     this.currentFile = currentFile
     this.nrOfLines = nrOfLines
+    this.succesCount = 0
+    this.failureCount = 0
+    this.timeOutcount = 0
   }
 
   def getTransformerName: String = {

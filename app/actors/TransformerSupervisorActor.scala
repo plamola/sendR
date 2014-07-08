@@ -98,6 +98,8 @@ class TransformerSupervisorActor(workers: Int, transformer: Transformer) extends
     }
   }
 
+  // TODO make stop (after done with file) a hard stop (remove actor from pool)
+  // TODO report to user file is done (All Workers stopped + No Files found is not enough)
 
   private def handleReceivedWorkResult(wr: WorkerResult) {
     if (supervisorState.getStatus eq SupervisorStateType.STARTING) {

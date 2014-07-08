@@ -6,7 +6,7 @@ import support.bulkImport._
 import java.io._
 import org.joda.time.DateTime
 import support.FileHelper
-import scala.Some
+
 
 class FileReaderActor(mySupervisor: ActorRef, filePath : String, fileContentType: String) extends UntypedActor  {
 
@@ -31,6 +31,7 @@ class FileReaderActor(mySupervisor: ActorRef, filePath : String, fileContentType
 
   override def postStop() {
     closeFile()
+    // TODO If file has not been completed, rename to 'stopped_'
     FileHelper.changeFileExtension(currentFile, "imported_" + new DateTime().toString("yyyyMMdd-HHmmss"))
     Logger.debug(self.toString + " - Terminated filereader ")
     mySupervisor ! new FileReaderStatus(FileReaderStatusType.SUICIDE)
