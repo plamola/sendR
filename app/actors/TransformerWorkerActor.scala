@@ -53,8 +53,8 @@ class TransformerWorkerActor(val supervisor: ActorRef, val transformer: Transfor
         case response : Response =>
           if (response.body.indexOf("<soap:Fault>") > 0) {
             Logger.debug("onSuccess soap:Fault")
-            // TODO get the faultcode && faultsting instead of returning the whole soap body
-            supervisor ! new WorkerResult(WorkerResultStatus.FAILED,Some("Failed: [line: " + payload.getLineNumber + "] " + response.status + ": " + response.body),Some(payload))
+            supervisor ! new WorkerResult(WorkerResultStatus.FAILED,Some("Failed: [line: " + payload.getLineNumber + "] " + response.status + ": " +
+              (response.xml \\ "Fault" \ "faultstring").text +  " (" +  (response.xml \\ "Fault" \ "faultcode").text + ")"),Some(payload))
           } else {
             Logger.debug("onSuccess - Done")
             supervisor ! new WorkerResult(WorkerResultStatus.DONE,Some("Did: [line: " + payload.getLineNumber + "] " + payload.getLine),Some(payload))
