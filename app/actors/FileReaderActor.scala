@@ -8,11 +8,6 @@ import org.joda.time.DateTime
 import support.FileHelper
 import scala.Some
 
-
-/**
- * Author: matthijs 
- * Created on: 24 May 2014.
- */
 class FileReaderActor(mySupervisor: ActorRef, filePath : String, fileContentType: String) extends UntypedActor  {
 
   private var currentFile: File = null
@@ -59,7 +54,6 @@ class FileReaderActor(mySupervisor: ActorRef, filePath : String, fileContentType
 
   /**
    * Open the file
-   *
    * @throws Exception    file could not be opened
    */
   private def openFile() {

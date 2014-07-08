@@ -13,8 +13,8 @@ object ServerSendEvents extends Controller {
   val (outputMessage, outputChannel) = Concurrent.broadcast[JsValue]
 
   /** Controller action serving activity based on channel */
-  def statusFeedAll() =
-    Ok.chunked(outputMessage  &> Concurrent.buffer(20) &> EventSource()).as("text/event-stream")
-
+  def statusFeedAll() = Action {
+    Ok.chunked(outputMessage &> Concurrent.buffer(20) &> EventSource()).as("text/event-stream")
+  }
 
 }

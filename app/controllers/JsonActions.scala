@@ -24,8 +24,8 @@ object JsonActions extends Controller {
     Json.toJson(transformers)
 
 
-  def index =
+  def index = Action {
     Ok(Json.toJson(transformersToJson(Transformer.all)))
-
+  }
 
 }
