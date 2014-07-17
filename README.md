@@ -1,7 +1,7 @@
 sendR
 =====
 
-sendR reads csv files and send each line as a webservice (SOAP) request
+sendR reads csv files and send each line read from that file as a webservice request (SAOP)
 
 Todo list
 ---------
