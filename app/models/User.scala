@@ -66,8 +66,8 @@ object User {
         SQL(
           """
             insert into account
-            (email, password, name)
-            values({email},{password},'sendR')
+            (email, password)
+            values({email},{password})
           """.stripMargin
         ).on(
             'email -> email,
