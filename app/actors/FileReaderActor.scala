@@ -14,6 +14,7 @@ class FileReaderActor(mySupervisor: ActorRef, filePath : String, fileContentType
   private var bf: BufferedReader = null
   private var in: DataInputStream = null
   private var lineNumber: Long = 0
+  private var hasContent : Boolean = false
 
 
   def incrementLineNumberCount() : Long = synchronized {
@@ -30,9 +31,14 @@ class FileReaderActor(mySupervisor: ActorRef, filePath : String, fileContentType
   }
 
   override def postStop() {
+    if (hasContent) {
+      // file not completed
+      FileHelper.changeFileExtension(currentFile, "stopped_" + new DateTime().toString("yyyyMMdd-HHmmss"))
+    } else {
+      // File has been completed
+      FileHelper.changeFileExtension(currentFile, "imported_" + new DateTime().toString("yyyyMMdd-HHmmss"))
+    }
     closeFile()
-    // TODO If file has not been completed, rename to 'stopped_'
-    FileHelper.changeFileExtension(currentFile, "imported_" + new DateTime().toString("yyyyMMdd-HHmmss"))
     Logger.debug(self.toString + " - Terminated filereader ")
     mySupervisor ! new FileReaderStatus(FileReaderStatusType.SUICIDE)
   }
@@ -95,14 +101,14 @@ class FileReaderActor(mySupervisor: ActorRef, filePath : String, fileContentType
   def getNextLine: Option[String] = {
     try {
       val line: String = bf.readLine
-      if (line != null)
+      hasContent = line != null
+      if (hasContent)
         Some(line)
       else
         None
     }
     catch {
       case e: Exception =>
-        // TODO stop the actor?
         Logger.error(String.format("%s -> %s", e.getStackTrace.head.getMethodName, e.getMessage))
         None
     }
