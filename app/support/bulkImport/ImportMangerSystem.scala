@@ -2,6 +2,7 @@ package support.bulkImport
 
 import akka.actor._
 import models.Transformer
+import org.joda.time.DateTime
 import play.Logger
 import actors.TransformerSupervisorActor
 
@@ -16,7 +17,7 @@ object ImportMangerSystem {
     if (supervisor != null) {
        stopTransformerSupervisor(transformer.id)
     }
-    addTransformer(transformer.id, system.actorOf(Props(new TransformerSupervisorActor(workers, transformer)), transformer.name + "-" + transformer.id))
+    addTransformer(transformer.id, system.actorOf(Props(new TransformerSupervisorActor(workers, transformer)), transformer.name + "-" + transformer.id+ '-' + DateTime.now().getMillis))
     Logger.info("Start import of " + transformer.importPath + " [" + transformer.id+ "]")
   }
 
