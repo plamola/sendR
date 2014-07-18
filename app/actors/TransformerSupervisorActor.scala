@@ -98,9 +98,6 @@ class TransformerSupervisorActor(workers: Int, transformer: Transformer) extends
     }
   }
 
-  // TODO make stop (after done with file) a hard stop (remove actor from pool)
-  // TODO report to user file is done (All Workers stopped + No Files found is not enough)
-
   private def handleReceivedWorkResult(wr: WorkerResult) {
     if (supervisorState.getStatus eq SupervisorStateType.STARTING) {
       supervisorState.setStatus(SupervisorStateType.RUNNING)
@@ -144,7 +141,6 @@ class TransformerSupervisorActor(workers: Int, transformer: Transformer) extends
           supervisorState.incrementActiveWorkers()
           if (supervisorState.getActiveWorkers == supervisorState.getWorkers) {
             supervisorState.setStatus(SupervisorStateType.RUNNING)
-            //sendMessageToInformer("All workers have reported for duty.")
           }
           Logger.trace(self.toString + " - reported for duty")
           fileReaderActor.tell("give hime something to do",getSender())
@@ -167,11 +163,14 @@ class TransformerSupervisorActor(workers: Int, transformer: Transformer) extends
           supervisorState.decrementActiveWorkers()
           Logger.debug("Worker " + sender.path + " committed suicide [" + supervisorState.getActiveWorkers + "/" + workers + "]")
           if (supervisorState.getActiveWorkers == 0) {
-            sendMessageToInformer("All workers stopped")
+            //sendMessageToInformer("All workers stopped")
             Logger.info(self.toString + " - All workers stopped.")
             if (supervisorState.getStatus eq SupervisorStateType.STOPPING) {
               if (fileReaderActor != null) {
                 fileReaderActor ! PoisonPill.getInstance
+                if(supervisorState.getNrOfLines == ( supervisorState.getSuccesCount + supervisorState.getFailureCount)) {
+                  sendMessageToInformer("Finished with file ")
+                }
               }
               supervisorState.setStatus(SupervisorStateType.STOPPED)
             }
