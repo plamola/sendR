@@ -1,12 +1,12 @@
 package controllers
 
 import models.Transformer
-import play.api.mvc._
-import play.api.data._
-import play.api.data.Forms._
-import support.bulkImport.ImportMangerSystem
-import play.api.{Play, Logger}
 import play.api.Play.current
+import play.api.data.Forms._
+import play.api.data._
+import play.api.mvc._
+import play.api.{Logger, Play}
+import support.bulkImport.ImportMangerSystem
 
 case class TransformerData(
                             id: Long,
@@ -31,16 +31,16 @@ object TransformerControl extends Controller with Secured {
       "id" -> longNumber,
       "name" -> nonEmptyText,
       "category" -> text,
-      "importPath" -> text,
-      "importFileExtension" -> default(text,".csv"),
-      "importFilecontentType" -> default(text,"cp1252"),
-      "webserviceCharSet" -> default(text,"UTF-8"),
-      "webserviceURL" -> text,
+      "importPath" -> nonEmptyText,
+      "importFileExtension" -> default(text, ".csv"),
+      "importFilecontentType" -> default(text, "cp1252"),
+      "webserviceCharSet" -> default(text, "UTF-8"),
+      "webserviceURL" -> nonEmptyText,
       "webserviceUser" -> text,
       "webservicePassword" -> text,
-      "webserviceTimeout" -> default(number,10000),
+      "webserviceTimeout" -> default(number, 10000),
       "webserviceTemplate" -> default(text, "<soap></soap>"),
-      "timeStampString" -> default(text,"2014-01-01T00:00:00Z")
+      "timeStampString" -> default(text, "2014-01-01T00:00:00Z")
     )(TransformerData.apply)(TransformerData.unapply)
   )
 
@@ -82,22 +82,16 @@ object TransformerControl extends Controller with Secured {
   def edit(id: Long) = Action {
     implicit request =>
       if (id == 0) {
-        // TODO Fix this stuff - show proper default
-        val formData = TransformerData(0L, null, null, null, ".csv", "cp1252", "UTF-8", null, null, null, 10000,
+        val formData = TransformerData(0L, "", "", "", ".csv", "cp1252", "UTF-8", "", "", "", 10000,
           "<soap></soap>", "2014-01-01T00:00:00Z")
-        //val form2 = transformerForm.fill(formData)
-
-//        Ok(views.html.transformer_newedit
-//          .render("New transformer", id, form2,session)
-//        )
         Ok(views.html.transformer_newedit
-          .render("New transformer", id, transformerForm,session)
+          .render("New transformer", id, transformerForm.fill(formData), session)
         )
       }
       else
         Transformer.findById(id) match {
           case Some(tr) => Ok(views.html.transformer_newedit
-            .render("Edit transformer", id, transformerForm.fill(TransformerToTransformerData(tr)),session)
+            .render("Edit transformer", id, transformerForm.fill(TransformerToTransformerData(tr)), session)
           )
           case None =>
             Redirect(routes.Application.index()).flashing("error" -> "Transformer not found")
@@ -109,7 +103,7 @@ object TransformerControl extends Controller with Secured {
     implicit request =>
       transformerForm.bindFromRequest.fold(
         formWithErrors => {
-          BadRequest(views.html.transformer_newedit.render("Error while saving", id, formWithErrors,session))
+          BadRequest(views.html.transformer_newedit.render("Error while saving", id, formWithErrors, session))
         },
         transformerData => {
           try {
@@ -123,7 +117,7 @@ object TransformerControl extends Controller with Secured {
           }
           catch {
             case e: Exception =>
-              BadRequest(views.html.transformer_newedit.render("Error while saving. " + e.getMessage, id, transformerForm.fill(transformerData),session))
+              BadRequest(views.html.transformer_newedit.render("Error while saving. " + e.getMessage, id, transformerForm.fill(transformerData), session))
           }
         }
       )
@@ -132,8 +126,8 @@ object TransformerControl extends Controller with Secured {
   def delete(id: Long) = Action {
     implicit request =>
       try {
-      Transformer.delete(id)
-      Redirect(routes.Application.index()).flashing("success" -> "Transformer deleted")
+        Transformer.delete(id)
+        Redirect(routes.Application.index()).flashing("success" -> "Transformer deleted")
       }
       catch {
         case e: Exception =>
@@ -170,8 +164,8 @@ object TransformerControl extends Controller with Secured {
   }
 
   private def TransformerDataToTransformer(tr: TransformerData) = new
-    Transformer(tr.id, tr.name, tr.category, tr.importPath, tr.importFileExtension, tr.importFilecontentType, tr.webserviceCharSet,
-      tr.webserviceURL, tr.webserviceUser, tr.webservicePassword, tr.webserviceTimeout, tr.webserviceTemplate, tr.timeStampString, 1)
+      Transformer(tr.id, tr.name, tr.category, tr.importPath, tr.importFileExtension, tr.importFilecontentType, tr.webserviceCharSet,
+        tr.webserviceURL, tr.webserviceUser, tr.webservicePassword, tr.webserviceTimeout, tr.webserviceTemplate, tr.timeStampString, 1)
 
 
   private def TransformerToTransformerData(tr: Transformer) = new
