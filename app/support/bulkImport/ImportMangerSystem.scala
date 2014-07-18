@@ -14,11 +14,10 @@ object ImportMangerSystem {
   def startTransformerSupervisor(workers: Int, transformer: Transformer) {
     val supervisor = findTransformer(transformer.id)
     if (supervisor != null) {
-        supervisor ! new SupervisorCommand(SupervisorCommandType.START)
-    } else {
-        addTransformer(transformer.id, system.actorOf(Props(new TransformerSupervisorActor(workers, transformer)), transformer.name + "-" + transformer.id))
-        Logger.info("Start import of " + transformer.importPath + " [" + transformer.id+ "]")
+       stopTransformerSupervisor(transformer.id)
     }
+    addTransformer(transformer.id, system.actorOf(Props(new TransformerSupervisorActor(workers, transformer)), transformer.name + "-" + transformer.id))
+    Logger.info("Start import of " + transformer.importPath + " [" + transformer.id+ "]")
   }
 
   def stopTransformerSupervisor(id: Long) {

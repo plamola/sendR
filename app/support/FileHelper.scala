@@ -10,7 +10,7 @@ import scala.io.Source
 
 object FileHelper {
 
-  def findNextFile(importDirectory : String, fileExtension : String) : Option[FileDetails] = {
+  def findNextFile(importDirectory : String, fileExtension : String, charset: String) : Option[FileDetails] = {
     if (importDirectory == null) {
       Logger.warn("The import directory is incorrect.")
       None
@@ -32,7 +32,7 @@ object FileHelper {
         yield importFile
       }
       if (fileList.length > 0)
-        Some(FileDetails(fileList.head.getName, fileList.head.getAbsolutePath, countLinesInFile(fileList.head.getAbsolutePath)))
+        Some(FileDetails(fileList.head.getName, fileList.head.getAbsolutePath, countLinesInFile(fileList.head.getAbsolutePath, charset)))
       else
         None
     }
@@ -44,9 +44,9 @@ object FileHelper {
    * @param fileName  path of the file
    * @return          number of lines in the file
    */
-  private def countLinesInFile(fileName: String): Long = {
+  private def countLinesInFile(fileName: String, charset: String): Long = {
     var newlineCount = 0L
-    for (line <- Source.fromFile(fileName).getLines()) {
+    for (line <- Source.fromFile(new File(fileName), charset).getLines()) {
       newlineCount += 1
     }
     newlineCount

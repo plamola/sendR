@@ -149,7 +149,7 @@ class TransformerSupervisorActor(workers: Int, transformer: Transformer) extends
           supervisorState.incrementSuccesCount()
           Logger.trace("[" + supervisorState.getActiveWorkers + "] " + sender.toString + ": " + wr.getResult + " (" + wr.getProcessingTime + "ms)")
           if ((supervisorState.getSuccesCount % 1000) == 0 && supervisorState.getSuccesCount != 0) {
-            sendMessageToInformer(self.toString + " - Did another 1000")
+            sendMessageToInformer("Did another 1000")
             Logger.debug(" [" + supervisorState.getActiveWorkers + "] " + self.toString + " - Success count: " + supervisorState.getSuccesCount)
           }
           fileReaderActor.tell("give hime some more",getSender())
@@ -189,7 +189,7 @@ class TransformerSupervisorActor(workers: Int, transformer: Transformer) extends
   }
 
   private def startWithNewFile() : ActorRef = {
-    FileHelper.findNextFile(transformer.importPath,transformer.importFileExtension) match {
+    FileHelper.findNextFile(transformer.importPath,transformer.importFileExtension, transformer.importFilecontentType) match {
       case Some(file) =>
         Logger.debug("Found: " + file.fullPath + " [" + file.nrOfLines+ " lines]")
         sendMessageToInformer("Found: " + file.fullPath + " [" + file.nrOfLines+ " lines]")
