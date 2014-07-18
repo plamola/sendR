@@ -56,8 +56,25 @@ class TransformerWorkerActor(val supervisor: ActorRef, val transformer: Transfor
             supervisor ! new WorkerResult(WorkerResultStatus.FAILED,Some("Failed: [line: " + payload.getLineNumber + "] " + response.status + ": " +
               (response.xml \\ "Fault" \ "faultstring").text +  " (" +  (response.xml \\ "Fault" \ "faultcode").text + ")"),Some(payload))
           } else {
-            Logger.debug("onSuccess - Done")
-            supervisor ! new WorkerResult(WorkerResultStatus.DONE,Some("Did: [line: " + payload.getLineNumber + "] " + payload.getLine),Some(payload))
+            response.status match {
+              case 200 =>
+                if (response.body.indexOf("<soap:Envelope") > 0) {
+                  Logger.debug("onSuccess - Done - " + response.status)
+                  supervisor ! new WorkerResult(WorkerResultStatus.DONE,Some("Did: [line: " + payload.getLineNumber + "] " + payload.getLine),Some(payload))
+                } else {
+                  Logger.debug("onSuccess - Done - invalid SOAP - " + response.status + " - " + response.body)
+                  supervisor ! new WorkerResult(WorkerResultStatus.FAILED,Some("Failed: [line: " + payload.getLineNumber + "] " + response.status + ": " +
+                    "No SOAP response"),Some(payload))
+                }
+              case 404 =>
+                Logger.debug("onSuccess - Done - " + response.status)
+                supervisor ! new WorkerResult(WorkerResultStatus.FAILED,Some("Failed: [line: " + payload.getLineNumber + "] " + response.status + ": " +
+                  "webservice not found"),Some(payload))
+              case _   =>
+                Logger.debug("onSuccess - Done - " + response.status)
+                supervisor ! new WorkerResult(WorkerResultStatus.FAILED,Some("Failed: [line: " + payload.getLineNumber + "] " + response.status + ": " +
+                  ""),Some(payload))
+            }
           }
         case _ =>
           Logger.debug("onSuccess _")
